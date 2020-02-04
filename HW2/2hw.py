@@ -54,15 +54,20 @@ for i in comb:
     # only for recreacion of matrix
     #U = U.T
     #V = V.T
+#%%
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-
 for j in sample:
     ax.scatter(j[1][0], j[1][1], j[1][2], color='blue')
+plt.title('Singular Values per Set of Stocks')
+ax.set_xlabel('sv1', labelpad=5)
+ax.set_ylabel('sv2', labelpad=7)
+ax.set_zlabel('sv3', labelpad=10)
 plt.savefig('scatter.png')
 plt.show()
 #%%
+
 df = pd.DataFrame(sample,columns = ['stocks', 'sv'])
 splitSvs = np.vstack(df.sv).T
 df['sv1']=splitSvs[0]
@@ -84,6 +89,13 @@ ax = fig.add_subplot(111, projection='3d')
 
 groups = df.groupby('labels')
 for group in groups:
-    ax.scatter(group[1].sv1, group[1].sv2, group[1].sv3)
-plt.savefig('Clusters.png')
+    data = group[1]
+    ax.scatter(data.sv1, data.sv2, data.sv3, label='Cluster '+str(list(data.labels)[0]))
+plt.title('Singular Values per Set of Stocks', y=1.07)
+ax.set_xlabel('sv1', labelpad=5)
+ax.set_ylabel('sv2', labelpad=7)
+ax.set_zlabel('sv3', labelpad=10)
+plt.legend(bbox_to_anchor=(0.2, 0.9, 0.6, .102), loc='lower left',
+           ncol=2, mode="expand", borderaxespad=0.)
+plt.savefig('clusters.png')
 plt.show()
