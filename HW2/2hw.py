@@ -90,12 +90,10 @@ ax = fig.add_subplot(111, projection='3d')
 groups = df.groupby('labels')
 for group in groups:
     data = group[1]
-    ax.scatter(data.sv1, data.sv2, data.sv3, label='Cluster '+str(list(data.labels)[0]))
-plt.title('Singular Values per Set of Stocks', y=1.07)
+    ax.scatter(data.sv1, data.sv2, data.sv3)
+plt.title('Singular Values per Set of Stocks')
 ax.set_xlabel('sv1', labelpad=5)
 ax.set_ylabel('sv2', labelpad=7)
 ax.set_zlabel('sv3', labelpad=10)
-plt.legend(bbox_to_anchor=(0.2, 0.9, 0.6, .102), loc='lower left',
-           ncol=2, mode="expand", borderaxespad=0.)
 plt.savefig('clusters.png')
 plt.show()
