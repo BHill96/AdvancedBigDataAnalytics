@@ -6,14 +6,12 @@ Created on Mon Feb  3 11:03:30 2020
          Blake
 """
 
-import os 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import random
 from sklearn.cluster import KMeans
-from itertools import combinations
+#from itertools import combinations
 from mpl_toolkits.mplot3d import Axes3D
 #%%
 random.seed()
@@ -40,17 +38,14 @@ while len(full) > 2:
 
 for i in comb:
 
-  
-    data1 = pd.read_excel(i[0] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)   
-    data2 = pd.read_excel(i[1] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)
-    data3 = pd.read_excel(i[2] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)
+    data1 = pd.read_excel('Stocks/' + i[0] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)   
+    data2 = pd.read_excel('Stocks/' + i[1] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)
+    data3 = pd.read_excel('Stocks/' + i[2] + '.xlsx').drop(['Date', 'PX_VOLUME'], axis=1)
     data = data1.merge(data2, left_index=True, right_index=True).merge(data3, left_index=True, right_index=True)
-    
     
     data = data.pct_change()
     data.replace([np.inf, -np.inf], np.nan)
     data.dropna(inplace=True)
-    
     
     covariance = data.cov()
     U, D, V= np.linalg.svd(covariance)
@@ -65,16 +60,30 @@ ax = fig.add_subplot(111, projection='3d')
 
 for j in sample:
     ax.scatter(j[1][0], j[1][1], j[1][2], color='blue')
-
+plt.savefig('scatter.png')
 plt.show()
 #%%
-
 df = pd.DataFrame(sample,columns = ['stocks', 'sv'])
-df.info()
+splitSvs = np.vstack(df.sv).T
+df['sv1']=splitSvs[0]
+df['sv1']=df['sv1'].astype(float)
+df['sv2']=splitSvs[1]
+df['sv2']=df['sv2'].astype(float)
+df['sv3']=splitSvs[2]
+df['sv3']=df['sv3'].astype(float)
+df.drop('sv', axis=1, inplace=True)
+df.reset_index(inplace=True)
+df.drop('index',inplace=True, axis=1)
 
+# Fit needed a list of lists instead of whatever pandas was giving it.
+cluster = KMeans(n_clusters = 2, n_jobs = 1).fit(np.stack([df.sv1, df.sv2, df.sv3]).T)
+df['labels'] = cluster.labels_
 
-#%%
-cluster = KMeans(n_clusters = 2, n_jobs = -1).fit(df['sv'])
-print(cluster.labels_)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
-
+groups = df.groupby('labels')
+for group in groups:
+    ax.scatter(group[1].sv1, group[1].sv2, group[1].sv3)
+plt.savefig('Clusters.png')
+plt.show()
