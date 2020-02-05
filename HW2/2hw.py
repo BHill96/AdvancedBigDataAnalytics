@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import random
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 #from itertools import combinations
 from mpl_toolkits.mplot3d import Axes3D
 #%%
@@ -47,9 +48,10 @@ for i in comb:
     data.replace([np.inf, -np.inf], np.nan)
     data.dropna(inplace=True)
     
-    covariance = data.cov()
-    U, D, V= np.linalg.svd(covariance)
+    pca = PCA(n_components=3)
+    D = pca.fit(data).singular_values_
     
+    # Find indices to sort, and then sort both lists
     sortD = np.argsort(D)
     D = np.take_along_axis(D, sortD, axis=None)
     i = np.take_along_axis(np.array(i), sortD, axis=None)
@@ -100,5 +102,3 @@ ax.set_ylabel('sv2', labelpad=7)
 ax.set_zlabel('sv3', labelpad=10)
 plt.savefig('clusters.png')
 plt.show()
-#%%
-print(sample)
