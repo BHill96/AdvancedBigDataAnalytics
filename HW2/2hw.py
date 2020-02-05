@@ -50,7 +50,10 @@ for i in comb:
     covariance = data.cov()
     U, D, V= np.linalg.svd(covariance)
     
-    sample.append([i,D])
+    sortD = np.argsort(D)
+    D = np.take_along_axis(D, sortD, axis=None)
+    i = np.take_along_axis(np.array(i), sortD, axis=None)
+    sample.append([i[::-1],D[::-1]])
     # only for recreacion of matrix
     #U = U.T
     #V = V.T
@@ -97,3 +100,5 @@ ax.set_ylabel('sv2', labelpad=7)
 ax.set_zlabel('sv3', labelpad=10)
 plt.savefig('clusters.png')
 plt.show()
+#%%
+print(sample)
