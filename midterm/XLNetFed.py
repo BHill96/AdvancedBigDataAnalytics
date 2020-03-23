@@ -6,15 +6,15 @@ Created on Sat Mar 21 14:53:07 2020
 @author: blakehillier
 """
 
-from pandas import read_csv, to_datetime
+from pandas import to_datetime
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
-from pytorch_transformers import XLNetModel, XLNetTokenizer, XLNetForSequenceClassification, AdamW
-from tqdm import tqdm, trange
-import io
-import numpy as np
+from pytorch_transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
+from tqdm import trange
+from numpy import argmax, ceil, log
+import numpy.sum as npSum
 
 """
 Calculates the sentiment of statements in the dataframe text by aligning them to the appropriate 
@@ -40,8 +40,11 @@ def CalcSentiment(text, stock):
     sentimentData['Futur_Pct_Change'] = pctChange.values
     
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
-    return sentimentData.drop(labels=['Close'], axis=1)
+    return sentimentData.drop(labels=['Close', 'Future_Pct_Change'], axis=1)
 
+"""
+Turns the text into tokens with [SEP] and [CLS] tags for XLNetTokenizer and then creates the input IDs and attention masks.
+"""
 def TextPrep(sentimentData):
     sentences = sentimentData.Text.values
     # You can use up to two sentences. [SEP] ends a sentence, [CLS] ends the input text.
@@ -53,7 +56,7 @@ def TextPrep(sentimentData):
     # We set the maximum input length by finding the largest sample, and then using the extra memory space in the memory block
     # This takes too much memory so for now we set to largest sample size
     largestTextLength = sentimentData.Text.map(lambda x: len(x)).max()
-    MAX_LEN = int(pow(2, np.ceil(np.log(largestTextLength)/np.log(3))))
+    MAX_LEN = int(pow(2, ceil(log(largestTextLength)/log(3))))
     # Create token IDS
     input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
     input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype='long', truncating='post', padding='post')
@@ -64,11 +67,17 @@ def TextPrep(sentimentData):
         attention_masks.append(seq_mask)
     return input_ids, attention_masks
 
+"""
+Calculates accuracy for model.
+"""
 def flat_accuracy(preds, labels):
-    pred_flat = np.argmax(preds, axis=1).flatten()
+    pred_flat = argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
-    return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    return npSum(pred_flat == labels_flat) / len(labels_flat)
 
+"""
+Trains the model on batches and epochs, validating each epoch to judge convergence. SHOULD NOT BE USED FOR FINAL TRAINING.
+"""
 def Train(inputIds, attention_masks, labels):
     train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(inputIds, 
                                                                                         labels, 
@@ -142,8 +151,8 @@ def Train(inputIds, attention_masks, labels):
         # Valuation
         model.eval()
     
-        eval_loss, eval_accuracy = 0,0
-        nb_eval_steps, nb_eval_examples = 0,0
+        eval_accuracy = 0
+        nb_eval_steps = 0
         
         for batch in validation_dataloader:
             batch = tuple(t.to(device) for t in batch)
