@@ -78,7 +78,7 @@ def flat_accuracy(preds, labels):
 """
 Trains the model on batches and epochs, validating each epoch to judge convergence. SHOULD NOT BE USED FOR FINAL TRAINING.
 """
-def Train(inputIds, attention_masks, labels):
+def Train(inputIds, attention_masks, labels, batch_size=24, epochs = 10):
     train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(inputIds, 
                                                                                         labels, 
                                                                                         random_state=2020, 
@@ -93,7 +93,6 @@ def Train(inputIds, attention_masks, labels):
     train_masks = torch.tensor(train_masks)
     validation_masks = torch.tensor(validation_masks)
     
-    batch_size = 24
     # Create Iterators of the datasets
     train_data = TensorDataset(train_inputs, train_masks, train_labels)
     train_sampler = RandomSampler(train_data)
@@ -116,16 +115,17 @@ def Train(inputIds, attention_masks, labels):
     ]
     optimizer = AdamW(optimizer_grouped_parameters, lr=2e-5)
     
-    train_loss_set = []
-    epochs = 10
+    # train_loss_set = []
     
     # Find GPU or CPU
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    trainLoss = []
+    valAcc = []
     for _ in trange(epochs, desc='Epoch'):
         # Train
         model.train()
     
-        tr_loss = 0
+        trainLoss.append(0)
         nb_tr_examples, nb_tr_steps = 0, 0
     
         for step, batch in enumerate(train_dataloader):
@@ -136,22 +136,20 @@ def Train(inputIds, attention_masks, labels):
             outputs = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask, labels=b_labels)
             loss = outputs[0]
             logits = outputs[1]
-            train_loss_set.append(loss.item())
             # Calculate gradients
             loss.backward()
             # Update weights using gradients
             optimizer.step()
     
-            tr_loss += loss.item()
+            trainLoss[-1] += loss.item()
             nb_tr_examples += b_input_ids.size(0)
             nb_tr_steps += 1
     
-        print('\nTrain loss: {}'.format(tr_loss/nb_tr_steps))
+        print('\nTrain loss: {}'.format(trainLoss[-1]/nb_tr_steps))
     
         # Valuation
         model.eval()
     
-        eval_accuracy = 0
         nb_eval_steps = 0
         
         for batch in validation_dataloader:
@@ -167,10 +165,10 @@ def Train(inputIds, attention_masks, labels):
     
             tmp_eval_accuracy = flat_accuracy(logits, label_ids)
     
-            eval_accuracy += tmp_eval_accuracy
+            valAcc[-1] += tmp_eval_accuracy
             nb_eval_steps += 1
     
-        print('\nValidation Accuracy: {}\n'.format(eval_accuracy/nb_eval_steps))
+        print('\nValidation Accuracy: {}\n'.format(valAcc[-1]/nb_eval_steps))
         
-    return model
+    return model, trainLoss, valAcc
         
