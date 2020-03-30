@@ -37,7 +37,7 @@ def turnDaily(stock, info):
     colLabel = info.columns[1]
     i=len(info)-1
     j=len(stock)-1
-    while j > -1:
+    while j > -1 and i > -1:
         if info['Date'][i] < stock['Date'][j]:
             daily.append(info[colLabel][i])
             j = j-1
@@ -80,6 +80,7 @@ unh['Date'] = unh['Date'].dt.normalize()
 
 #Merge Dataframes
 final = pd.merge_asof(unh,tnx, on = 'Date')
+print(final)
 final = final.iloc[1:]
 data = pd.merge_asof(final,libor, on='Date')
 
