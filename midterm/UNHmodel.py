@@ -71,7 +71,7 @@ econ = pd.concat(frames, axis = 1)
 tnx = pd.read_excel(dataDr+'TNX Daily.xlsx')
 tnx.dropna(inplace=True)
 
-libor = pd.read_csv(dataDr+'LiborDaily.csv').drop(['Ln Changes'], axis=1)
+libor = pd.read_csv(dataDr+'LIBORDaily.csv').drop(['Ln Changes'], axis=1)
 libor['Date'] = pd.to_datetime(libor['Date'])
 libor['Date'] = libor['Date'].dt.normalize()
 
@@ -80,7 +80,6 @@ unh['Date'] = unh['Date'].dt.normalize()
 
 #Merge Dataframes
 final = pd.merge_asof(unh,tnx, on = 'Date')
-print(final)
 final = final.iloc[1:]
 data = pd.merge_asof(final,libor, on='Date')
 

@@ -143,13 +143,14 @@ unemploymentDaily = DataFrame(unemploymentDaily)
 unemploymentDaily.dropna()
 unemploymentDaily.rename(columns = {'0':'Unempl'}, inplace = True)
 
+
 frames = [unemploymentDaily, inflationDaily, gdpDaily, textDaily]
 econ = concat(frames, axis = 1)
 
 tnx = read_excel(dataDr+'TNX Daily.xlsx')
 tnx.dropna(inplace=True)
 
-libor = read_csv(dataDr+'LiborDaily.csv').drop(['Ln Changes'], axis=1)
+libor = read_csv(dataDr+'LIBORDaily.csv').drop(['Ln Changes'], axis=1)
 libor['Date'] = to_datetime(libor['Date'])
 libor['Date'] = libor['Date'].dt.normalize()
 
@@ -199,7 +200,7 @@ regressior.summary()
 
 regressior.compile(optimizer='adam', loss = 'mean_squared_error')
 # This prevents overfitting, only use during final testing and training
-callback = callbacks.EarlyStopping(monitor='loss', patience=5, min_delta=0.05)
+callback = callbacks.EarlyStopping(monitor='loss', patience=5, min_delta=0.01)
 regressior.fit(X_train, y_train, epochs=50, batch_size=32, callbacks=[callback])
 
 # Test Results
@@ -224,4 +225,4 @@ plt.show()
 # Find MSE
 tom = y_pred[:,0]
 tom = tom.tolist()
-mean_squared_error(unhClose,tom)
+print('MSE: {0}'.format(mean_squared_error(unhClose,tom)))

@@ -42,7 +42,7 @@ def CalcSentiment(text, stock):
     sentimentData['Futur_Pct_Change'] = pctChange.values
     
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
-    return sentimentData.drop(labels=['Close', 'Futur_Pct_Change'], axis=1)
+    return sentimentData.drop(labels=['Futur_Pct_Change'], axis=1)
 
 def xlnetPrep(sentenceList):
     par = ''
