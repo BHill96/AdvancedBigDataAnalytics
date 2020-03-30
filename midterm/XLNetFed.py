@@ -11,10 +11,12 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
+# MUST INSTALL PYTORCH-TRANSFORMERS
 from pytorch_transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 from tqdm import trange
-from numpy import argmax, ceil, log
-import numpy.sum as npSum
+from numpy import argmax, sum 
+import nltk
+nltk.download('punkt')
 
 """
 Calculates the sentiment of statements in the dataframe text by aligning them to the appropriate 
@@ -40,25 +42,29 @@ def CalcSentiment(text, stock):
     sentimentData['Futur_Pct_Change'] = pctChange.values
     
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
-    return sentimentData.drop(labels=['Close', 'Future_Pct_Change'], axis=1)
+    return sentimentData.drop(labels=['Close', 'Futur_Pct_Change'], axis=1)
+
+def xlnetPrep(sentenceList):
+    par = ''
+    for sentence in sentenceList:
+        par += sentence +' [SEP] '
+    return par
 
 """
 Turns the text into tokens with [SEP] and [CLS] tags for XLNetTokenizer and then creates the input IDs and attention masks.
 """
 def TextPrep(sentimentData):
-    sentences = sentimentData.Text.values
-    # You can use up to two sentences. [SEP] ends a sentence, [CLS] ends the input text.
-    sentences = [sentence + ' [SEP] [CLS]' for sentence in sentences]
-    
-    tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased', do_lower_case=True)
+    sentimentData.Text = sentimentData.Text.apply(nltk.tokenize.sent_tokenize)
+    sentimentData.Text = sentimentData.Text.apply(xlnetPrep)
     # Turns the string into a sequence of words
-    tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
-    # We set the maximum input length by finding the largest sample, and then using the extra memory space in the memory block
-    # This takes too much memory so for now we set to largest sample size
-    largestTextLength = sentimentData.Text.map(lambda x: len(x)).max()
-    MAX_LEN = int(pow(2, ceil(log(largestTextLength)/log(3))))
+    tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased', do_lower_case=True)
+    tokenizedText = sentimentData.Text.apply(tokenizer.tokenize)
+    MAX_LEN = 128
+    SEPToken = tokenizer.tokenize(' [SEP]')
+    CLSToken = tokenizer.tokenize(' [CLS]')
+    tokenizedText = tokenizedText.apply(lambda x: x[:MAX_LEN-8]+SEPToken+CLSToken if len(x)>MAX_LEN-4 else x+CLSToken)
     # Create token IDS
-    input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
+    input_ids = input_ids = tokenizedText.apply(tokenizer.convert_tokens_to_ids)
     input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype='long', truncating='post', padding='post')
     # Attention masks mark how many tokens are in a sentence
     attention_masks = []
@@ -73,12 +79,12 @@ Calculates accuracy for model.
 def flat_accuracy(preds, labels):
     pred_flat = argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
-    return npSum(pred_flat == labels_flat) / len(labels_flat)
+    return sum(pred_flat == labels_flat) / len(labels_flat)
 
 """
 Trains the model on batches and epochs, validating each epoch to judge convergence. SHOULD NOT BE USED FOR FINAL TRAINING.
 """
-def Train(inputIds, attention_masks, labels, batch_size=24, epochs = 10):
+def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10):
     train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(inputIds, 
                                                                                         labels, 
                                                                                         random_state=2020, 
@@ -151,7 +157,7 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs = 10):
         model.eval()
     
         nb_eval_steps = 0
-        
+        valAcc.append(0)
         for batch in validation_dataloader:
             batch = tuple(t.to(device) for t in batch)
             b_input_ids, b_input_mask, b_labels = batch
