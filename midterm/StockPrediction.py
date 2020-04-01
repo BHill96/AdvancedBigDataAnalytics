@@ -13,7 +13,6 @@ from XLNetFed import CalcSentiment, TextPrep
 from pytorch_transformers import XLNetForSequenceClassification, AdamW
 from tqdm import trange
 import numpy as np
-import pandas as pd
 from numpy import argmax
 from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Dense, LSTM, Dropout
@@ -36,7 +35,7 @@ def turnDaily(stock, info):
 # Train XLNet
 EPOCHS = 10
 BATCH_SIZE = 24
-dataDr = ''
+dataDr = 'Data/'
 unh = read_csv(dataDr+'UNH.csv')
 textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']), unh)
 inpts, attMsks = TextPrep(textData)
@@ -219,7 +218,7 @@ plt.xlabel('Time')
 plt.ylabel('UNH Stock Price')
 plt.legend()
 plt.savefig('StockPredXLNet.pdf')
-plt.savefig('StockPredXLNet.eps')
+plt.savefig('StockPredXLNet.pgf')
 plt.show()
 
 # Find MSE
