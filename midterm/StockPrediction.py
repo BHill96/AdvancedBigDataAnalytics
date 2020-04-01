@@ -217,8 +217,9 @@ plt.title('UNH Stock Price Prediction')
 plt.xlabel('Time')
 plt.ylabel('UNH Stock Price')
 plt.legend()
+# PDF is just for quick checking of figure
 plt.savefig('StockPredXLNet.pdf')
-plt.savefig('StockPredXLNet.pgf')
+plt.savefig('StockPredXLNet.pgf', transparent=True)
 plt.show()
 
 # Find MSE
