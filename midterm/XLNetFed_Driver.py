@@ -10,7 +10,7 @@ from pandas import read_csv
 import torch
 from XLNetFed import CalcSentiment, TextPrep, Train
 
-data = CalcSentiment(read_csv('FedTextData.csv', names=['Date','Text']), read_csv('UNH.csv'))
+dir = 'Data/'
+data = CalcSentiment(read_csv(dir+'FedTextData.csv', names=['Date','Text']), read_csv(dir+'UNH.csv'))
 inpt, attMsk = TextPrep(data)
 model = Train(inpt, attMsk, list(data.Econ_Perf))
-torch.save(model, 'XLNetStock.pt')
