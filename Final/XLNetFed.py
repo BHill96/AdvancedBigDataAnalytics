@@ -29,7 +29,7 @@ def CalcSentiment(text, metric, type='Stock'):
     
     metric['Date'] = to_datetime(metric['Date'])
     metric['Date'] = metric['Date'].dt.normalize()
-    metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
+    # metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
     
     if type == 'Stock':
         sentimentData = text.merge(metric, on='Date', how='left')
