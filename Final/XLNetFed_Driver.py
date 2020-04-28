@@ -11,6 +11,6 @@ import torch
 from XLNetFed import CalcSentiment, TextPrep, Train
 
 dir = 'Data/'
-data = CalcSentiment(read_csv(dir+'FedTextData.csv', names=['Date','Text']), read_csv(dir+'GDPQuarterly.csv'))
+data = CalcSentiment(read_csv(dir+'FedTextData.csv', names=['Date','Text']), read_csv(dir+'GDPQuarterly.csv'), metricType='Macro')
 inpt, attMsk = TextPrep(data)
 model = Train(inpt, attMsk, list(data.Econ_Perf))

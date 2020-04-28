@@ -24,16 +24,16 @@ stock values in stock and calculating the percent change. The text gets labeled 
 positive and 0 for anything else. It returns a dataframe of the dates, the text, and the sentiment 
 label.
 """
-def CalcSentiment(text, metric, type='Stock'):
+def CalcSentiment(text, metric, metricType='Stock'):
     text['Date'] = to_datetime(text['Date'])
     
     metric['Date'] = to_datetime(metric['Date'])
     metric['Date'] = metric['Date'].dt.normalize()
     # metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
     
-    if type == 'Stock':
+    if metricType == 'Stock':
         sentimentData = text.merge(metric, on='Date', how='left')
-    elif type == 'Macro':
+    elif metricType == 'Macro':
         sentimentData = text.join(DataFrame(turnDaily(text, metric)).rename({0:'GDP'}, axis=1))
     else:
         print('ERROR: info of type {0}'.format(type))
