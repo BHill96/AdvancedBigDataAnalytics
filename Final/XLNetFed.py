@@ -6,7 +6,7 @@ Created on Sat Mar 21 14:53:07 2020
 @author: blakehillier
 """
 
-from pandas import to_datetime
+from pandas import to_datetime, DataFrame
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
@@ -24,18 +24,25 @@ stock values in stock and calculating the percent change. The text gets labeled 
 positive and 0 for anything else. It returns a dataframe of the dates, the text, and the sentiment 
 label.
 """
-def CalcSentiment(text, stock):
+def CalcSentiment(text, metric, type='Stock'):
     text['Date'] = to_datetime(text['Date'])
     
-    stock['Date'] = to_datetime(stock['Date'])
-    stock['Date'] = stock['Date'].dt.normalize()
-    stock.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
+    metric['Date'] = to_datetime(metric['Date'])
+    metric['Date'] = metric['Date'].dt.normalize()
+    metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
     
-    sentimentData = text.merge(stock, on='Date', how='left')
+    if type == 'Stock':
+        sentimentData = text.merge(metric, on='Date', how='left')
+    elif type == 'Macro':
+        sentimentData = text.join(DataFrame(turnDaily(text, metric)).rename({0:'GDP'}, axis=1))
+    else:
+        print('ERROR: info of type {0}'.format(type))
+    
     sentimentData.describe(include='all')
-
+    
     # Calculate the percent change between close price
-    pctChange = sentimentData['Close'].pct_change()
+    """ pctChange = sentimentData['Close'].pct_change() """
+    pctChange = sentimentData['gdp'].pct_change()
     # Orient it so we have the future percent change
     pctChange.drop(0, inplace=True)
     sentimentData.drop(sentimentData.index[-1], inplace=True)
@@ -43,6 +50,21 @@ def CalcSentiment(text, stock):
     
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
     return sentimentData.drop(labels=['Futur_Pct_Change'], axis=1)
+    
+    
+    
+def turnDaily(stock, info):
+    daily = []
+    colLabel = info.columns[1]
+    i=len(info)-1
+    j=len(stock)-1
+    while j > -1 and i > -1:
+        if info['Date'][i] < stock['Date'][j]:
+            daily.append(info[colLabel][i])
+            j = j-1
+        else:
+            i = i-1
+    return daily[::-1]
 
 def xlnetPrep(sentenceList):
     par = ''
