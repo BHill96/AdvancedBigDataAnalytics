@@ -42,7 +42,7 @@ def CalcSentiment(text, metric, type='Stock'):
     
     # Calculate the percent change between close price
     """ pctChange = sentimentData['Close'].pct_change() """
-    pctChange = sentimentData['gdp'].pct_change()
+    pctChange = sentimentData['GDP'].pct_change()
     # Orient it so we have the future percent change
     pctChange.drop(0, inplace=True)
     sentimentData.drop(sentimentData.index[-1], inplace=True)
