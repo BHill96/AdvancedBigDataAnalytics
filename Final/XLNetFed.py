@@ -12,7 +12,7 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 # MUST INSTALL PYTORCH-TRANSFORMERS
-from pytorch_transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
+from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 from tqdm import trange
 from numpy import argmax, sum 
 import nltk
