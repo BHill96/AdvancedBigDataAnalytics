@@ -6,7 +6,7 @@ Created on Sat Mar 21 14:53:07 2020
 @author: blakehillier
 """
 
-from pandas import to_datetime, DataFrame
+from pandas import to_datetime, DataFrame, concat
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
@@ -26,6 +26,9 @@ label.
 """
 def CalcSentiment(text, metric, metricType='Stock'):
     text['Date'] = to_datetime(text['Date'])
+    text['Date'] = text['Date'].dt.normalize()
+    text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
+    text.reset_index(inplace=True)
     
     metric['Date'] = to_datetime(metric['Date'])
     metric['Date'] = metric['Date'].dt.normalize()
@@ -34,7 +37,8 @@ def CalcSentiment(text, metric, metricType='Stock'):
     if metricType == 'Stock':
         sentimentData = text.merge(metric, on='Date', how='left')
     elif metricType == 'Macro':
-        sentimentData = text.join(DataFrame(turnDaily(text, metric)).rename({0:'GDP'}, axis=1))
+        sentimentData = text.merge(DataFrame(turnDaily(text, metric)).rename({0:'Date', 1:'GDP'}, axis=1), on='Date', 
+                                          how='left')
     else:
         print('ERROR: info of type {0}'.format(type))
     
@@ -51,8 +55,6 @@ def CalcSentiment(text, metric, metricType='Stock'):
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
     return sentimentData.drop(labels=['Futur_Pct_Change'], axis=1)
     
-    
-    
 def turnDaily(stock, info):
     daily = []
     colLabel = info.columns[1]
@@ -60,9 +62,11 @@ def turnDaily(stock, info):
     j=len(stock)-1
     while j > -1 and i > -1:
         if info['Date'][i] < stock['Date'][j]:
-            daily.append(info[colLabel][i])
+            #print('{0} < {1}'.format(info['Date'][i], stock['Date'][j]))
+            daily.append([stock['Date'][j], info[colLabel][i]])
             j = j-1
         else:
+            #print('{0} > {1}'.format(info['Date'][i], stock['Date'][j]))
             i = i-1
     return daily[::-1]
 
