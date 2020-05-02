@@ -36,8 +36,7 @@ def turnDaily(stock, info):
 EPOCHS = 10
 BATCH_SIZE = 24
 dataDr = 'Data/'
-unh = read_csv(dataDr+'UNH.csv')
-textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']), unh)
+textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']), read_csv=read_csv(dir+'GDP.csv'))
 inpts, attMsks = TextPrep(textData)
 
 # Turn data into torch tensors
@@ -96,11 +95,11 @@ for batch in evalDataloader:
         logits = output[0]
     logits = logits.detach().cpu().numpy()
     labels = np.append(labels, argmax(logits, axis=1).flatten())
-    
+
 textPred = DataFrame(textData.Date, columns=['Date'])
 textPred['Label'] = labels
 textDaily = turnDaily(unh, textPred)
-textDaily = DataFrame(textDaily)    
+textDaily = DataFrame(textDaily)
 textDaily.dropna()
 textDaily.rename(columns = {'0':'EconPerf'}, inplace = True)
 
@@ -121,24 +120,24 @@ inflation['Date'] = inflation['Date'].dt.normalize()
 unemployment = read_csv(dataDr+'UnemploymentRateMonthly.csv')
 unemployment['Date'] = to_datetime(unemployment['Date'])
 unemployment['Date'] = unemployment['Date'].dt.normalize()
-        
+
 gdpDaily = turnDaily(unh, gdp)
-gdpDaily = DataFrame(gdpDaily)    
+gdpDaily = DataFrame(gdpDaily)
 gdpDaily.dropna()
 gdpDaily.rename(columns = {'0':'GDP'}, inplace = True)
 
 cpiDaily = turnDaily(unh, cpi)
-cpiDaily = DataFrame(cpiDaily)    
+cpiDaily = DataFrame(cpiDaily)
 cpiDaily.dropna()
 cpiDaily.rename(columns = {'0':'CPI'}, inplace = True)
 
 inflationDaily = turnDaily(unh, inflation)
-inflationDaily = DataFrame(inflationDaily)    
+inflationDaily = DataFrame(inflationDaily)
 inflationDaily.dropna()
 inflationDaily.rename(columns = {'0':'Inflation'}, inplace = True)
 
 unemploymentDaily = turnDaily(unh, unemployment)
-unemploymentDaily = DataFrame(unemploymentDaily)    
+unemploymentDaily = DataFrame(unemploymentDaily)
 unemploymentDaily.dropna()
 unemploymentDaily.rename(columns = {'0':'Unempl'}, inplace = True)
 
