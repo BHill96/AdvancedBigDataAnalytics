@@ -203,5 +203,5 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10):
     
         print('\nValidation Accuracy: {}\n'.format(valAcc[-1]/nb_eval_steps))
         
-    return model, trainLoss, valAcc
+    return model, trainLoss[-1]/nb_tr_steps, valAcc[-1]/nb_eval_steps
         
