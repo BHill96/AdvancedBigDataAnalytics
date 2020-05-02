@@ -105,77 +105,71 @@ textDaily.rename(columns = {'0':'EconPerf'}, inplace = True)
 
 # Begin RNN LSTM
 # Read in files
-cpi = read_csv(dataDr+'CPIMonthly.csv')
-cpi['Date'] = to_datetime(cpi['Date'])
-cpi['Date'] = cpi['Date'].dt.normalize()
+gild = pd.read_csv('GILD.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+ci = pd.read_csv('CI.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+pfe = pd.read_csv('PFE.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+hum = pd.read_csv('HUM.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+Unh = pd.read_csv('UNH.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+tnx = pd.read_csv('TNX1.csv').drop(['Open','High','Low','Adj Close','Volume'], axis = 1)
+tnx.dropna(inplace = True)
+libor = pd.read_csv('liborfinal.csv')
+gdp = pd.read_csv('GDPC1.csv')
+cpi = pd.read_csv('CPIAUCSL.csv')
+inflation = pd.read_csv('MICH.csv')
+unemployment = pd.read_csv('UNRATENSA.csv')
 
-gdp = read_csv(dataDr+'GDPQuarterly.csv')
-gdp['Date'] = to_datetime(gdp['Date'])
-gdp['Date'] = gdp['Date'].dt.normalize()
-
-inflation = read_csv(dataDr+'InflationRateMonthly.csv')
-inflation['Date'] = to_datetime(inflation['Date'])
-inflation['Date'] = inflation['Date'].dt.normalize()
-
-unemployment = read_csv(dataDr+'UnemploymentRateMonthly.csv')
-unemployment['Date'] = to_datetime(unemployment['Date'])
-unemployment['Date'] = unemployment['Date'].dt.normalize()
-
-gdpDaily = turnDaily(unh, gdp)
-gdpDaily = DataFrame(gdpDaily)
-gdpDaily.dropna()
-gdpDaily.rename(columns = {'0':'GDP'}, inplace = True)
-
-cpiDaily = turnDaily(unh, cpi)
-cpiDaily = DataFrame(cpiDaily)
-cpiDaily.dropna()
-cpiDaily.rename(columns = {'0':'CPI'}, inplace = True)
-
-inflationDaily = turnDaily(unh, inflation)
-inflationDaily = DataFrame(inflationDaily)
-inflationDaily.dropna()
-inflationDaily.rename(columns = {'0':'Inflation'}, inplace = True)
-
-unemploymentDaily = turnDaily(unh, unemployment)
-unemploymentDaily = DataFrame(unemploymentDaily)
-unemploymentDaily.dropna()
-unemploymentDaily.rename(columns = {'0':'Unempl'}, inplace = True)
+#Create Empytlists for conversion to daily data
+gdpdaily = []
+cpidaily = []
+inflationdaily = []
+unemploymentdaily = []
 
 
-frames = [unemploymentDaily, inflationDaily, gdpDaily, textDaily]
-econ = concat(frames, axis = 1)
+def dataclean(predictor, emptylist, filename):
+    i = 0
+    j = 0
+    while i < len(predictor['Date']):
+        if predictor['Date'][i] < predictor['DATE'][j]:
+            emptylist.append(predictor[filename][j])
+            i = i + 1
+        else:
+            j = j + 1
 
-tnx = read_excel(dataDr+'TNX Daily.xlsx')
-tnx.dropna(inplace=True)
 
-libor = read_csv(dataDr+'LIBORDaily.csv').drop(['Ln Changes'], axis=1)
-libor['Date'] = to_datetime(libor['Date'])
-libor['Date'] = libor['Date'].dt.normalize()
+dataclean(gdp, gdpdaily, 'GDPC1')
+dataclean(cpi, cpidaily, 'CPIAUCSL')
+dataclean(inflation, inflationdaily, 'MICH')
+dataclean(unemployment, unemploymentdaily, 'UNRATENSA')
+        
+Unh['ci'] = ci['Close']
+Unh['gild'] = gild['Close']
+Unh['hum'] = hum['Close']
+Unh['pfe'] = pfe['Close']
+#Unh['tnx'] = tnx['Close']
+Unh['libor'] = libor[' value']
+Unh['cpi'] = cpidaily
+Unh['gdp'] = gdpdaily
+Unh['I'] = inflationdaily
+Unh['U'] = unemploymentdaily
+Unh['Txt'] = textDaily['EconPerf']
 
-# Merge Dataframes
-final = merge_asof(unh, tnx, on = 'Date')
-final = final.iloc[1:]
-data = merge_asof(final, libor, on='Date')
-
-data = concat((data, econ), axis = 1)
-
-# Create test and training sets
-data_training1 = data[data['Date']<'2007-01-01'].copy()
-data_test = data[data['Date']>='2007-01-01'].copy()
+#Create test and training sets
+data_training1 = Unh[Unh['Date']<'2009-01-01'].copy()
+data_test = Unh[Unh['Date']>='2009-01-01'].copy()
 
 data_training1 = data_training1.drop(['Date'], axis = 1)
-
 data_training = np.array(data_training1)
 
-# Create X,Y Train Set
+#Create X,Y Train Set
 X_train = np.expand_dims(data_training, axis = 2)
-y_train = data_training1['Close_x']
+y_train = data_training1[['Close','ci','gild','hum','pfe']]
 y_train = np.array(y_train)
 
-# Create X test Set, y actual set
+#Create X test Set, y actual set
 data_test = data_test.drop(['Date'], axis = 1)
 data_test = np.array(data_test)
 X_test = np.expand_dims(data_test, axis = 2)
+
 
 # Adjust shape as needed for data
 # Create RNN LSTM
@@ -193,7 +187,7 @@ regressior.add(Dropout(0.2))
 regressior.add(LSTM(units = 32, activation = 'relu'))
 regressior.add(Dropout(0.2))
 
-regressior.add(Dense(units = 1))
+regressior.add(Dense(units = 5))
 regressior.summary()
 
 regressior.compile(optimizer='adam', loss = 'mean_squared_error')
@@ -204,24 +198,76 @@ regressior.fit(X_train, y_train, epochs=50, batch_size=32, callbacks=[callback])
 # Test Results
 y_pred = regressior.predict(X_test)
 
-unhClose = unh['Close']
-unhClose = unhClose[1759:3773,]
-unhClose = np.array(unhClose)
+#Adjust actual stock value to have on same time scale on x axis
+unh1 = np.array(Unh['Close'][(5287-len(data_test)):5287])
+ci1 = np.array(Unh['ci'][(5287-len(data_test)):5287])
+gild1 = np.array(Unh['gild'][(5287-len(data_test)):5287])
+hum1 = np.array(Unh['hum'][(5287-len(data_test)):5287])
+pfe1 = np.array(Unh['pfe'][(5287-len(data_test)):5287])
 
-# Plot predicted vs actual
+def prediction(predict, actual, stockname):    
+    plt.figure(figsize=(14,5))
+    plt.plot(actual, color = 'red', label = 'Real' + stockname + 'Stock Price')
+    plt.plot(predict, color = 'blue', label = 'Predicted' + stockname + 'Stock Price')
+    plt.title(stockname + ' Stock Price Prediction')
+    plt.xlabel('Time')
+    plt.ylabel(stockname +  ' Stock Price')
+    plt.legend()
+    plt.show()
+
+prediction(y_pred[:,0],unh1,'UNH')
+prediction(y_pred[:,1],ci1,'CI')
+prediction(y_pred[:,2],gild1,'GILD')
+prediction(y_pred[:,3],hum1,'HUM')
+prediction(y_pred[:,4],pfe1,'PFE')
+
+#Plot all stock predicts and actuals
 plt.figure(figsize=(14,5))
-plt.plot(unhClose, color = 'red', label = 'Real UNH Stock Price')
-plt.plot(y_pred, color = 'blue', label = 'Predicted UNH Stock Price')
+plt.plot(pfe1, color = 'red', label = 'Real UNH Stock Price')
+plt.plot(unh1, color = 'cyan', label = 'Real UNH Stock Price')
+plt.plot(gild1, color = 'green', label = 'Real GILD Stock Price')
+plt.plot(hum1, color = 'magenta', label = 'Real HUM Stock Price')
+plt.plot(ci1, color = 'yellow', label = 'Real CI Stock Price')
+plt.plot(y_pred[:,0], color = 'blue', label = 'Predicted UNH Stock Price')
+plt.plot(y_pred[:,1], color = 'black', label = 'Predicted CI Stock Price')
+plt.plot(y_pred[:,2], color = '0.9', label = 'Predicted GILD Stock Price')
+plt.plot(y_pred[:,3], color = '0.75', label = 'Predicted HUM Stock Price')
+plt.plot(y_pred[:,4], color = '0.5', label = 'Predicted PFE Stock Price')
 plt.title('UNH Stock Price Prediction')
 plt.xlabel('Time')
 plt.ylabel('UNH Stock Price')
 plt.legend()
+plt.show()
+
+
 # PDF is just for quick checking of figure
 plt.savefig('StockPredXLNet.pdf')
 plt.savefig('StockPredXLNet.pgf', transparent=True)
 plt.show()
 
-# Find MSE
-tom = y_pred[:,0]
-tom = tom.tolist()
-print('MSE: {0}'.format(mean_squared_error(unhClose,tom)))
+#Create Covariance and Correlation matrices, Show heatmap
+mat = Unh.drop(columns = 'Date')
+mat.rename(columns = {'Close' : 'unh'}, inplace = True)
+sns.heatmap(mat.corr(), annot = True)
+
+# Print MSE for each stock and Residual Plot
+def metrics(predict, actual, stock):
+    res = []
+    for i,j in zip(predict,actual):    
+        res.append(abs(i-j))
+    plt.plot(res)
+    plt.ylabel('Residual Squared')
+    plt.xlabel('Time (Days)')
+    plt.title(stock + ' Residuals')
+    plt.show()
+    #Determine MSE
+    predict = predict.tolist()
+    actual = actual.tolist()
+    print(mean_squared_error(predict,actual))
+
+
+metrics(y_pred[:,0],unh1, 'UNH')
+metrics(y_pred[:,1],ci1, 'CI')
+metrics(y_pred[:,2],gild1, 'GILD')
+metrics(y_pred[:,3],hum1, 'HUM')
+metrics(y_pred[:,4],pfe1, 'PFE')  
