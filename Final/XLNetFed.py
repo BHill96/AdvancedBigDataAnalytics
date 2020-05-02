@@ -78,8 +78,9 @@ def xlnetPrep(sentenceList):
 
 """
 Turns the text into tokens with [SEP] and [CLS] tags for XLNetTokenizer and then creates the input IDs and attention masks.
+Takes a list of strings and a variable MAX_LEN describing the maximum number of characters to tokenize for each string.
 """
-def TextPrep(sentimentData):
+def TextPrep(sentimentData, MAX_LEN=128):
     sentimentData.Text = sentimentData.Text.apply(nltk.tokenize.sent_tokenize)
     sentimentData.Text = sentimentData.Text.apply(xlnetPrep)
     # Turns the string into a sequence of words
