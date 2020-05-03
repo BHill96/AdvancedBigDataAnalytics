@@ -31,13 +31,13 @@ def CalcSentiment(text, metric, metricType='Monthly'):
     text['Date'] = text['Date'].dt.normalize()
     text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
     text.reset_index(inplace=True)
-    metric['Date'] = to_datetime(metric['Date'])
-    metric['Date'] = metric['Date'].dt.normalize()
+    metric['DATE'] = to_datetime(metric['DATE'])
+    metric['DATE'] = metric['DATE'].dt.normalize()
     metricLabel = metric.columns[-1]
     # metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
 
     if metricType == 'Daily':
-        sentimentData = text.merge(metric, on='Date', how='left')
+        sentimentData = text.merge(metric, left_on='Date', right_on='DATE', how='left')
     elif metricType == 'Monthly':
         sentimentData = text.merge(DataFrame(turnDaily(text, metric)).rename({0:'Date', 1:metricLabel}, axis=1), on='Date',
                                           how='left')
@@ -54,15 +54,15 @@ def CalcSentiment(text, metric, metricType='Monthly'):
     sentimentData['Econ_Perf'] = sentimentData['Futur_Pct_Change'].apply(lambda x: 1 if x > 0 else 0)
     return sentimentData.drop(labels=['index', metricLabel, 'Futur_Pct_Change'], axis=1)
 
-def turnDaily(stock, info):
+def turnDaily(text, info):
     daily = []
     colLabel = info.columns[1]
     i=len(info)-1
-    j=len(stock)-1
+    j=len(text)-1
     while j > -1 and i > -1:
-        if info['Date'][i] < stock['Date'][j]:
+        if info['DATE'][i] < text['Date'][j]:
             #print('{0} < {1}'.format(info['Date'][i], stock['Date'][j]))
-            daily.append([stock['Date'][j], info[colLabel][i]])
+            daily.append([text['Date'][j], info[colLabel][i]])
             j = j-1
         else:
             #print('{0} > {1}'.format(info['Date'][i], stock['Date'][j]))
