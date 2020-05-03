@@ -12,22 +12,23 @@ from datetime import date, datetime
 import pandas_datareader.data as web
 
 def download_stock(stock):
-	""" try to query the iex for a stock, if failed note with print """
-	try:
-		print(stock)
-		stock_df = web.DataReader(stock, 'yahoo', startTime, nowTime)
-		stock_df['Name'] = stock
-		output_name = 'Data/Stocks/' + stock + '_data.csv'
-		stock_df.to_csv(output_name)
-	except:
-		bad_names.append(stock)
-		print('bad: %s' % (stock))
+    """ try to query the iex for a stock, if failed note with print """
+    try:
+        print(stock)
+        stock_df = web.DataReader(stock, 'yahoo', startTime, nowTime)
+        stock_df['Name'] = stock
+        output_name = 'Data/Stocks/' + stock + '_data.csv'
+        stock_df.to_csv(output_name)
+        succ_names.append(stock)
+    except:
+        bad_names.append(stock)
+        print('bad: %s' % (stock))
 
 if __name__ == '__main__':
 
     """ set the download window """
     begTime = datetime.now()
-    nowTime = date(2014, 12, 31)
+    nowTime = date(2019, 12, 31)
     startTime = date(1994, 1, 1)
 
     """ list of s_anp_p companies """
@@ -71,7 +72,8 @@ if __name__ == '__main__':
 		'VMC','WMT','WBA','DIS','WM','WAT','WEC','WFC','HCN','WDC','WU','WRK','WY','WHR','WMB',
 		'WLTW','WYN','WYNN','XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS']
 
-    bad_names =[] #to keep track of failed queries
+    bad_names = [] #to keep track of failed queries
+    succ_names = []
 
     """ here we use the concurrent.futures module's ThreadPoolExecutor
         to speed up the downloads buy doing them in parallel
@@ -85,9 +87,14 @@ if __name__ == '__main__':
         res = executor.map(download_stock, s_and_p)
 
 
+    if len(succ_names) > 0:
+        with open('Data/Stocks/succ_queries.txt','w') as outfile:
+            for name in succ_names:
+                outfile.write(name+'\n')
+
     """ Save failed queries to a text file to retry """
     if len(bad_names) > 0:
-        with open('failed_queries.txt','w') as outfile:
+        with open('Data/Stocks/failed_queries.txt','w') as outfile:
             for name in bad_names:
                 outfile.write(name+'\n')
 
