@@ -7,7 +7,7 @@ Created on Sat Mar 21 14:53:07 2020
 """
 
 from pandas import to_datetime, DataFrame, concat
-"""import torch
+import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
@@ -16,7 +16,7 @@ from transformers import XLNetTokenizer, XLNetForSequenceClassification, AdamW
 from tqdm import trange
 from numpy import argmax, sum
 import nltk
-nltk.download('punkt')"""
+nltk.download('punkt')
 
 """
 Calculates the sentiment of statements in the dataframe text by aligning them to the appropriate
