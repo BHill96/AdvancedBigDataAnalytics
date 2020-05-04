@@ -126,7 +126,7 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
 
     # Load and merge datasets
     macroFiles = ['liborfinal','GDPC1','CPIAUCSL','MICH','UNRATENSA']
-    macroDaily = loadMacro('unh_data', macroFiles)
+    macroDaily = loadMacro('UNH_data', macroFiles)
     stocks = loadStocks()
     forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
     forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
