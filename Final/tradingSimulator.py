@@ -130,7 +130,8 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
     stocks = loadStocks()
     forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
     forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
-    # print(forcastData)
+    forcastData.rename(columns={'Date':'DATE'}, inplace=True)
+    print(forcastData)
     # Keep text separate
     text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
     text['Date'] = pd.to_datetime(text['Date'])
@@ -141,15 +142,16 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
     t = T[0]
     currentText = text[text.Date <= t]
     # print(currentText)
-    currentNum = forcastData[forcastData.Date <= t]
+    currentNum = forcastData[forcastData.DATE <= t]
     # print(currentNum)
     while t < T[1]:
         # Requires GPU
         print('Training XLNet...')
-        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[xlnetMetric], metricType=xlnetMetricType)
+        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]], metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
         model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch, epochs=epochs)
 
+        print('Selecting stocks based on risk...')
         print('LSTM training...')
         print('Caclulating expected returns...')
         print('Ranking Stocks...')
@@ -159,4 +161,4 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
 
         print('Updating data...')
         currentText = text[text.Date <= t]
-        currentNum = forcastData[forcastData.Date <= t]
+        currentNum = forcastData[forcastData.DATE <= t]
