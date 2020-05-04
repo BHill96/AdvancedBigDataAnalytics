@@ -186,7 +186,7 @@ def lstm(stockname):
 
 
   plt.figure(figsize=(14,5))
-  plt.plot(data_test1[stockname], color = 'red', label = 'Real ' + stockname + ' Stock Price')
+  plt.plot(data_test[:,0], color = 'red', label = 'Real ' + stockname + ' Stock Price')
   plt.plot(y_pred, color = 'blue', label = 'Predicted ' + stockname + ' Stock Price')
   plt.title(stockname + ' Stock Price Prediction')
   plt.xlabel('Time')
