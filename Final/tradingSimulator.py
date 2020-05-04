@@ -8,6 +8,24 @@ Created on Sun May  3 21:04:23 2020
 
 import pandas as pd
 from tqdm import tqdm
+import datetime
+from dateutil.relativedelta import relativedelta
+import XLNetFed
+
+def turnDaily(stock, info):
+    daily = []
+    colLabel = info.columns[1]
+    i=len(info)-1
+    j=len(stock)-1
+    while j > -1 and i > -1:
+        if info['DATE'][i] < stock['Date'][j]:
+            # print('{2}: {0}<{1}'.format(info['DATE'][i], stock['Date'][j], j))
+            daily.append(info[colLabel][i])
+            j = j-1
+        else:
+            # print('{2}: {0}>{1}'.format(info['DATE'][i], stock['Date'][j], i))
+            i = i-1
+    return daily[::-1]
 
 """
 Loads all the macro data from csv files and converts to daily timeframe.
@@ -88,43 +106,57 @@ def loadStocks():
         stocks[tick] = apd['Close']
     return stocks
 
-def turnDaily(stock, info):
-    daily = []
-    colLabel = info.columns[1]
-    i=len(info)-1
-    j=len(stock)-1
-    while j > -1 and i > -1:
-        if info['DATE'][i] < stock['Date'][j]:
-            # print('{2}: {0}<{1}'.format(info['DATE'][i], stock['Date'][j], j))
-            daily.append(info[colLabel][i])
-            j = j-1
-        else:
-            # print('{2}: {0}>{1}'.format(info['DATE'][i], stock['Date'][j], i))
-            i = i-1
-    return daily[::-1]
-
-
-
-macroDaily = loadMacro('unh_data', ['liborfinal','GDPC1','CPIAUCSL','MICH','UNRATENSA'])
-
-stocks = loadStocks()
-forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna()
-text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
-text['Date'] = pd.to_datetime(text['Date'])
-text['Date'] = text['Date'].dt.normalize()
-
 """
-Load Text
-Combine into one data frame
-Separate into two dataframes, one with date <= tBegin and the other date > tBegin
+Simulates the market from tBegin to tEnd while implimenting a long trading strategy
+for each t it trains the XLNet and the LSTM based on 'current' data,
+then forcasts to t+dt and calculates the expected return for each stock.
+Ranks each stock by return and selects the top n stocks to invest in.
+This repeats until tEnd.
 
-t = tBegin
-while t < tEnd
-    Train XLNet
-    Train LSTM
-    Forcast stocks to time period t+1
-    Calculate expected returns
-    Rank stocks by returns
-    Pick best n stocks to buy
-    Jump to t+1
+T = [tBegin, tEnd] the interval of simulation (string yyyy/mm/dd)
+dt = time until portfolio needs to be reavaluated (months)
+n = number of best stocks to trade with after ranking
+xlnetMetric = name of macro file to use for sentiment analysis
+xlnetMetricType = 'Daily' or 'Quarterly'
 """
+def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24, epochs=10):
+    # Turn to datetime
+    T = pd.to_datetime(T)
+    dt = relativedelta(months=+dt)
+
+    # Load and merge datasets
+    macroFiles = ['liborfinal','GDPC1','CPIAUCSL','MICH','UNRATENSA']
+    macroDaily = loadMacro('unh_data', macroFiles)
+    stocks = loadStocks()
+    forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
+    forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
+    # print(forcastData)
+    # Keep text separate
+    text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
+    text['Date'] = pd.to_datetime(text['Date'])
+    text['Date'] = text['Date'].dt.normalize()
+    text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
+
+    # Prep data for simulation
+    t = T[0]
+    currentText = text[text.Date <= t]
+    # print(currentText)
+    currentNum = forcastData[forcastData.Date <= t]
+    # print(currentNum)
+    while t < T[1]:
+        # Requires GPU
+        print('Training XLNet...')
+        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[xlnetMetric], metricType=xlnetMetricType)
+        inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
+        model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch, epochs=epochs)
+
+        print('LSTM training...')
+        print('Caclulating expected returns...')
+        print('Ranking Stocks...')
+        print('Buying best n stocks...')
+        t += dt
+        print('Calculating actual returns...')
+
+        print('Updating data...')
+        currentText = text[text.Date <= t]
+        currentNum = forcastData[forcastData.Date <= t]
