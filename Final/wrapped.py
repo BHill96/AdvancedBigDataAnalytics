@@ -192,7 +192,7 @@ def lstm(stockname):
   plt.xlabel('Time')
   plt.ylabel(stockname +  ' Stock Price')
   plt.legend()
-  #plt.show()
+  plt.show()
   predict = y_pred.tolist()
   actual = data_test1[stockname].tolist()
   mae.append(mean_absolute_error(predict,actual))
