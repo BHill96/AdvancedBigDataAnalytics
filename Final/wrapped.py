@@ -163,16 +163,16 @@ def lstm(stockname):
   regressior = Sequential()
 
   regressior.add(LSTM(units = 256, activation = 'relu',  return_sequences = True, input_shape = (X_train.shape[1], 1)))
-  regressior.add(Dropout(0.5))
+  regressior.add(Dropout(0.2))
 
   regressior.add(LSTM(units = 128, activation = 'relu', return_sequences = True))
-  regressior.add(Dropout(0.5))
+  regressior.add(Dropout(0.2))
 
   regressior.add(LSTM(units = 64, activation = 'relu', return_sequences = True))
-  regressior.add(Dropout(0.5))
+  regressior.add(Dropout(0.2))
 
   regressior.add(LSTM(units = 32, activation = 'relu'))
-  regressior.add(Dropout(0.5))
+  regressior.add(Dropout(0.2))
 
   regressior.add(Dense(units = 1))
   regressior.summary()
