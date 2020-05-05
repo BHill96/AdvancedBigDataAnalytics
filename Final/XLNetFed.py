@@ -39,7 +39,6 @@ def CalcSentiment(text, metric, metricType='Monthly'):
     metric['DATE'] = metric['DATE'].dt.normalize()
     metricLabel = metric.columns[-1]
     metric[metricLabel] = metric[metricLabel].apply(to_numeric)
-    print(type(metric[metricLabel][0]))
 
     if metricType == 'Daily':
         sentimentData = text.merge(metric, left_on='Date', right_on='DATE', how='left')
