@@ -20,7 +20,7 @@ from tensorflow.keras import optimizers
 
 def turnDaily(stock, info):
     stockDate = stock.columns[0]
-    infoDate = stock.columns[0]
+    infoDate = info.columns[0]
     daily = []
     colLabel = info.columns[1]
     i=len(info)-1
