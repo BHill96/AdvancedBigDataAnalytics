@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import datetime
 from dateutil.relativedelta import relativedelta
-#mport XLNetFed
+import XLNetFed
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 from tensorflow.keras import Sequential
@@ -206,12 +206,12 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     while t < T[1]:
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
-        usableStocks = bins[riskLevel]
+        usableStocks = bins[riskLevel].tolist()
         usableStocks.append('DATE')
         usableStocks = currentNum[usableStocks]
 
         # Requires GPU
-        """print('Training XLNet...')
+        print('Training XLNet...')
         sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(currentText, MAX_LEN=MAX_LEN)
