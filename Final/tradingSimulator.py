@@ -235,6 +235,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
             day = interval[lstmColumns].iloc[-1]
+            print(day)
             day = deepcopy(day.drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
