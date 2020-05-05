@@ -211,7 +211,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
         usableStockTickers = bins[riskLevel].tolist()
-        usableStockTickers.append('DATE')
+        usableStockTickers
         usableStocks = currentNum[usableStockTickers]
 
         # Requires GPU
@@ -225,11 +225,13 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)"""
         sentiment = [1 for _ in range(0, len(currentText))]
         currentText['Sentiment'] = sentiment
-        currentNum['Sentiment'] = turnDaily(usableStocks[['DATE', usableStockTickers[0]]],
+        currentNum['Sentiment'] = turnDaily(currentNum[['DATE', usableStockTickers[0]]],
                                             currentText[['Date','Sentiment']])
 
         print('LSTM training...')
+        print(usableStocks)
         for stock in tqdm(usableStocks):
+            print(stock)
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
