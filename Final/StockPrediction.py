@@ -11,7 +11,7 @@ import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from XLNetFed import CalcSentiment, TextPrep
-from pytorch_transformers import XLNetForSequenceClassification, AdamW
+from transformers import XLNetForSequenceClassification, AdamW
 from tqdm import trange
 import tqdm
 import numpy as np
