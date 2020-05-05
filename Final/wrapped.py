@@ -5,6 +5,11 @@ Created on Mon May  4 12:10:36 2020
 @author: Joe
 """
 
+"""
+Created on Mon May  4 12:10:36 2020
+@author: Joe
+"""
+
 import pandas as pd
 import os
 import sys
@@ -177,8 +182,8 @@ def lstm(stockname):
   regressior.add(Dense(units = 1))
   regressior.summary()
 
-  regressior.compile(optimizer='adam', loss = 'mean_squared_error')
-  regressior.fit(X_train, y_train, epochs=5, batch_size=64)
+  regressior.compile(optimizer='adam', loss = 'mean_absolute_error')
+  regressior.fit(X_train, y_train, epochs=50, batch_size=64)
 
   #Run LSTM on Test, output predictions
 
