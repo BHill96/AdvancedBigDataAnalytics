@@ -174,8 +174,8 @@ riskLevel = how risky you want the portfolio to be from 0 to numRiskLevels-1
 xlnetMetric = name of macro file to use for sentiment analysis
 xlnetMetricType = 'Daily' or 'Quarterly'
 """
-def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24,
-                   epochs=10):
+def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricType='Quarterly',
+                   MAX_LEN=128, batch=24, epochs=10):
     # Turn to datetime
     T = pd.to_datetime(T)
     dt = relativedelta(months=+dt)
@@ -213,7 +213,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
         model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf[:-1]), batch_size=batch,
                                epochs=epochs)
-        currentText['Sentiment'] = XLNetFed.Predict(model(inpt, attMsk))
+        currentText['Sentiment'] = XLNetFed.Predict(model, inpt, attMsk, batch)
         sentiment = turnDaily(usableStocks['DATE'], currentText[['Date','Sentiment']])
 
         print('LSTM training...')
