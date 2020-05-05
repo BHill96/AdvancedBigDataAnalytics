@@ -6,12 +6,17 @@ Created on Sun May  3 21:04:23 2020
 @author: blakehillier
 """
 
+from copy import deepcopy
 import pandas as pd
 from tqdm import tqdm
 import datetime
 from dateutil.relativedelta import relativedelta
 import XLNetFed
 import numpy as np
+from sklearn.metrics import mean_absolute_error
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout
+from tensorflow.keras import optimizers
 
 def turnDaily(stock, info):
     daily = []
@@ -107,6 +112,52 @@ def loadStocks():
         stocks[tick] = apd['Close']
     return stocks
 
+def riskBins(stocks, numStocks, numRiskLevels):
+    # Should we normalize it first?
+    variance = stocks.var(axis=0)[-numStocks:].sort_values(ascending=True, axis=0)
+    # If numRiskLevels does not easily divide numStocks, the riskiest bin will be smaller
+    binSize = int(np.ceil(numStocks/numRiskLevels))
+    bins = []
+    for i in range(0, numRiskLevels-1):
+        lb = i*binSize
+        ub = (i+1)*binSize
+        bins.append(variance.index[lb:ub])
+    bins.append(variance.index[ub:])
+    return bins
+
+def createModel(shape):
+    regressior = Sequential()
+    regressior.add(LSTM(units=256, activation='relu', return_sequences=True, input_shape=(shape[1], 1)))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=128, activation='relu', return_sequences=True))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=64, activation='relu', return_sequences=True))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=32, activation='relu'))
+    regressior.add(Dropout(0.2))
+    regressior.add(Dense(units=1))
+    return regressior
+
+def lstm(stock, macroData, sentiment, epochs=5, batch=64):
+    training = pd.merge(stock, macroData, on='DATE')
+    training['sentiment'] = turnDaily(stock, sentiment)
+    training.drop(columns=['DATE'], inplace=True, axis=1)
+    training.drop(training.tail(1).index, inplace=True)
+    training = np.array(training)
+    print(training)
+
+    #Create X,Y Train Set
+    X = np.expand_dims(training, axis = 2)
+    Y = np.array(stock[stock.columns[1]])[1:]
+
+    # Build network Structure
+    model = createModel(X.shape)
+
+    # Compile and train model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.fit(X, Y, epochs=epochs, batch_size=batch)
+    return model
+
 """
 Simulates the market from tBegin to tEnd while implimenting a long trading strategy
 for each t it trains the XLNet and the LSTM based on 'current' data,
@@ -142,40 +193,45 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
     # Prep data for simulation
     t = T[0]
-    currentText = text[text.Date <= t]
-    currentNum = forcastData[forcastData.DATE <= t]
+    currentText = text[text.Date < t]
+    currentNum = forcastData[forcastData.DATE < t]
     # Find number of stocks
     numStocks = len(forcastData.columns) - (len(macroFiles)+1)
+    macroFilesDate = deepcopy(macroFiles)
+    macroFilesDate.append('DATE')
     while t < T[1]:
         print('Selecting stocks based on risk...')
-        # Should we normalize it first?
-        variance = currentNum.var(axis=0)[len(macroFiles)+1:].sort_values(ascending=True, axis=0)
-        # If numRiskLevels does not easily divide numStocks, the riskiest bin will be smaller
-        binSize = int(np.ceil(numStocks/numRiskLevels))
-        bins = []
-        for i in range(0, numRiskLevels-1):
-            lb = i*binSize
-            ub = (i+1)*binSize
-            bins.append(variance.index[lb:ub])
-        bins.append(variance.index[ub:])
+        bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
         usableStocks = currentNum[bins[riskLevel]]
         print(usableStocks)
 
         # Requires GPU
         print('Training XLNet...')
-        """sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
+        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
         model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch,
-                                     epochs=epochs)"""
+                                     epochs=epochs)
 
         print('LSTM training...')
+        #sentiment = 1
+        for stock in usableStocks:
+            model = lstm(currentNum[['DATE',stock]], currentNum[macroFilesDate], sentiment)
+            print('trained')
+            history = [currentNum.iloc[-1]]
+            print(history)
+            #for date in forcastData[(forcastData.Date > t) & (forcastData.DATE <= t+dt)]:
+             #   model
+
         print('Caclulating expected returns...')
+
         print('Ranking Stocks...')
+
         print('Buying best n stocks...')
-        t += dt
-        print('Calculating actual returns...')
 
         print('Updating data...')
-        currentText = text[text.Date <= t]
-        currentNum = forcastData[forcastData.DATE <= t]
+        t += dt
+        currentText = text[text.Date < t]
+        currentNum = forcastData[forcastData.DATE < t]
+
+        print('Calculating actual returns...')
