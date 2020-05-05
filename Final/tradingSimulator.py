@@ -259,7 +259,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         expectedRtns.append(rtns)
 
         print('Buying best {0} stocks...'.format(n))
-        stocks = returns.iloc[:n]
+        stocks = rtns.iloc[:n]
 
         print('Calculating actual returns...')
         interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
