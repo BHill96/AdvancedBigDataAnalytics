@@ -226,7 +226,6 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         currentNum['Sentiment'] = turnDaily(currentNum[['DATE', usableStocks[0]]],
                                             currentText[['Date','Sentiment']])
 
-        print('LSTM training...')
         forcastDates = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         forcastDates = forcastDates.DATE
         returns = []
@@ -248,28 +247,22 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             # Calculate the Return
             #print('{0}: {1}'.format(stock, history))
             rtn = history[-1]-history[0]
-            print('{0}: {1}'.format(stock,rtn))
             returns.append([stock, rtn])
 
         print('Ranking Stocks...')
-        print('Returns:')
+        print('Expected Returns:')
         print(returns)
         returns = pd.DataFrame(returns, columns=['Stock','Return'])
         returns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
 
         print('Buying best {0} stocks...'.format(n))
         stocks = returns.iloc[:n]
-        print(stocks)
 
         print('Calculating actual returns...')
         interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         actRtns = interval[stocks.Stock]
-        print(actRtns)
-        stockTicks = interval.columns
-        print(actRtns.iloc[-1])
-        print(actRtns.iloc[0])
         actRtns = actRtns.iloc[-1]-actRtns.iloc[0]
-        actRtns = pd.DataFrame([stockTicks,actRtns])
+        actRtns = pd.DataFrame([stocks.Stock,actRtns])
         print(actRtns)
 
         print('Updating data...')
