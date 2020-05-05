@@ -240,16 +240,18 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             day = deepcopy(modelData.iloc[-1].drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
-                print('stock: {0}'.format(day[stock]))
+                #print('stock: {0}'.format(day[stock]))
                 lstmInput = np.reshape(np.array(day, np.float), (1,len(day),1))
                 price = model.predict(lstmInput)
-                print('price: {0}'.format(price))
+                #print('price: {0}'.format(price))
                 day[stock] = price[0][0]
-                print('new stock: {0}'.format(day[stock]))
+                #print('new stock: {0}'.format(day[stock]))
                 history.append(price[0][0])
             # Calculate the Return
-            print('{0}: {1}'.format(stock, history))
-            returns.append([stock, history[-1]-history[0]])
+            #print('{0}: {1}'.format(stock, history))
+            rtn = history[-1]-history[0]
+            print('{0}: {1}'.format(stock,rtn))
+            returns.append([stock, rtn])
 
         print('Ranking Stocks...')
         print('Returns:')
