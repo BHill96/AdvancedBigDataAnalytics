@@ -213,10 +213,13 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(currentText, MAX_LEN=MAX_LEN)
+        print(len(inpt), len(attMsk))
         model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf), batch_size=batch,
                                epochs=epochs)
         print('Trained')
-        currentText['Sentiment'] = XLNetFed.Predict(model, inpt, attMsk, batch)
+        sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)
+        print(len(currentText.index), len(sentiment))
+        currentText['Sentiment'] = sentiment
         sentiment = turnDaily(usableStocks['DATE'], currentText[['Date','Sentiment']])
 
         print('LSTM training...')
