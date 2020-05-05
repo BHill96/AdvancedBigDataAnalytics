@@ -230,7 +230,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         forcastDates = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         forcastDates = forcastDates.DATE
         returns = []
-        print('Forcasting Stocks...)
+        print('Forcasting Stocks...')
         for stock in tqdm(usableStocks):
             print(stock)
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
