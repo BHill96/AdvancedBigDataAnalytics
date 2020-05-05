@@ -223,7 +223,7 @@ stocks = loadStocks()
 # Read in files
 macroFiles = ['liborfinal','GDPC1','CPIAUCSL','MICH','UNRATENSA']
 macroDaily = loadMacro('UNH_data', macroFiles)
-macroDaily['Sentiment'] = turnDaily(macroDaily[['Daily','GDPC1']], textPred[['Date','Label']])
+macroDaily['Sentiment'] = turnDaily(macroDaily[['Date','GDPC1']], textPred[['Date','Label']])
 
 data = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
 data.sort_values(['Date'], inplace=True, axis=0, ascending=True)
