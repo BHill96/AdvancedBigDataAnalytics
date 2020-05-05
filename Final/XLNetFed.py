@@ -7,6 +7,7 @@ Created on Sat Mar 21 14:53:07 2020
 """
 
 from pandas import to_datetime, DataFrame, to_numeric
+import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
@@ -254,3 +255,20 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10, test_size
             optimizer.step()
 
     return model
+
+def Predict(model, inpts, masks, batchSize):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.eval()
+    evalData = TensorDataset(inpts, masks)
+    evalDataloader = DataLoader(evalData, batch_size=batchSize)
+    labels = np.array([])
+    for batch in evalDataloader:
+        batch = tuple(t.to(device) for t in batch)
+        b_input_ids, b_input_mask = batch
+        # Don't calculate gradients since we are evaluating the model
+        with torch.no_grad():
+            output = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask)
+            logits = output[0]
+        logits = logits.detach().cpu().numpy()
+        labels = np.append(labels, argmax(logits, axis=1).flatten())
+    return labels
