@@ -227,22 +227,35 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
                                             currentText[['Date','Sentiment']])
 
         print('LSTM training...')
+        forcastDates = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
+        forcastDates = forcastDates.DATE
+        returns = []
+        print('Forcasting Stocks...)
         for stock in tqdm(usableStocks):
             print(stock)
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
             print('trained')
-            history = [modelData.iloc[-1]]
-            print(history)
-            #for date in forcastData[(forcastData.Date > t) & (forcastData.DATE <= t+dt)]:
-             #   model
-
-        print('Caclulating expected returns...')
+            day = deepcopy(modelData.iloc[-1].drop('DATE'))
+            history = [day[stock]]
+            for _ in forcastDates:
+                price = model.predict(day)
+                day.loc[stock] = price
+                history.append(price)
+            # Calculate the Return
+            print('{0}: {1}'.format(stock, history))
+            returns.append([stock, history[-1]-history[0]])
 
         print('Ranking Stocks...')
+        print('Returns:')
+        print(returns)
+        returns = pd.DataFrame(returns, columns=['Stock','Return'])
+        returns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
 
         print('Buying best n stocks...')
+        stocks = returns.iloc[:n]
+        print(stocks)
 
         print('Updating data...')
         t += dt
