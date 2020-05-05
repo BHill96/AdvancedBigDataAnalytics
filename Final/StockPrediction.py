@@ -38,13 +38,123 @@ def turnDaily(stock, info):
             i = i-1
     return daily[::-1]
 
+def loadStocks():
+    #Read in files
+    # Should use the text file
+    s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',
+               'AMG','AFL','A','APD','AKAM','ALK','ALB','ARE','ALXN','ALGN','ALLE',
+               'AGN','ADS','LNT','ALL','GOOGL','GOOG','MO','AMZN','AEE','AAL','AEP',
+               'AXP','AIG','AMT','AWK','AMP','ABC','AME','AMGN','APH','ADI','ANDV',
+               'ANSS','ANTM','AON','AOS','APA','AIV','AAPL','AMAT','APTV','ADM',
+               'AJG','AIZ','T','ADSK','ADP','AZO','AVB','AVY','BLL','BAC','BK',
+               'BAX','BDX','BBY','BIIB','BLK','HRB','BA','BWA','BXP','BSX',
+               'BMY','AVGO','CHRW','CA','COG','CDNS','CPB','COF','CAH','CBOE',
+               'KMX','CCL','CAT','CBS','CNC','CNP','CTL','CERN','CF','SCHW',
+               'CHTR','CHK','CVX','CMG','CB','CHD','CI','XEC','CINF','CTAS','CSCO','C','CFG',
+               'CTXS','CLX','CME','CMS','KO','CTSH','CL','CMCSA','CMA','CAG','CXO','COP',
+               'ED','STZ','COO','GLW','COST','COTY','CCI','CSX','CMI','CVS','DHI',
+               'DHR','DRI','DVA','DE','DAL','XRAY','DVN','DLR','DFS','DISCA','DISCK','DISH',
+               'DG','DLTR','D','DOV','DTE','DRE','DUK','DXC','ETFC','EMN','ETN',
+               'EBAY','ECL','EIX','EW','EA','EMR','ETR','EVHC','EOG','EQT','EFX','EQIX','EQR',
+               'ESS','EL','ES','RE','EXC','EXPE','EXPD','ESRX','EXR','XOM','FFIV','FB','FAST',
+               'FRT','FDX','FIS','FITB','FE','FISV','FLIR','FLS','FLR','FMC','FL','F',
+	           'FBHS','BEN','FCX','GPS','GRMN','IT','GD','GE','GIS','GM','GPC','GILD',
+		       'GPN','GS','GT','GWW','HAL','HBI','HOG','HIG','HAS','HCA','HP','HSIC',
+		       'HSY','HES','HLT','HOLX','HD','HON','HRL','HST','HPQ','HUM','HBAN','HII',
+		       'IDXX','INFO','ITW','ILMN','INTC','ICE','IBM','INCY','IP','IPG','IFF','INTU',
+		       'ISRG','IVZ','IQV','IRM','JEC','JBHT','SJM','JNJ','JCI','JPM','JNPR','KSU','K','KEY',
+		       'KMB','KIM','KMI','KLAC','KSS','KR','LB','LH','LRCX','LEG','LEN',
+		       'LLY','LNC','LKQ','LMT','L','LOW','LYB','MTB','MAC','M','MRO','MPC','MAR','MMC','MLM',
+		       'MAS','MA','MAT','MKC','MCD','MCK','MDT','MRK','MET','MTD','MGM','MCHP','MU',
+		       'MSFT','MAA','MHK','TAP','MDLZ','MON','MNST','MCO','MS','MOS','MSI','MYL','NDAQ',
+		       'NOV','NAVI','NTAP','NFLX','NWL','NFX','NEM','NWSA','NWS','NEE','NLSN','NKE','NI',
+		       'NBL','JWN','NSC','NTRS','NOC','NCLH','NRG','NUE','NVDA','ORLY','OXY','OMC','OKE',
+		       'ORCL','PCAR','PKG','PH','PDCO','PAYX','PNR','PBCT','PEP','PKI','PRGO','PFE',
+		       'PCG','PM','PSX','PNW','PXD','PNC','RL','PPG','PPL','PFG','PG','PGR',
+		       'PLD','PRU','PEG','PSA','PHM','PVH','PWR','QCOM','DGX','RRC','RJF','RTN','O',
+		       'REG','REGN','RF','RSG','RMD','RHI','ROK','COL','ROP','ROST','RCL','CRM','SBAC',
+		       'SLB','SNI','STX','SEE','SRE','SHW','SIG','SPG','SWKS','SLG','SNA','SO','LUV',
+		       'SPGI','SWK','SBUX','STT','SRCL','SYK','STI','SYF','SNPS','SYY','TROW','TPR',
+		       'TGT','TEL','FTI','TXN','TXT','TMO','TIF','TWX','TJX','TSCO','TDG','TRV',
+		       'TRIP','TSN','UDR','ULTA','USB','UAA','UNP','UAL','UNH','UPS','URI',
+		       'UTX','UHS','UNM','VFC','VLO','VAR','VTR','VRSN','VRSK','VZ','VRTX','V','VNO',
+		       'VMC','WMT','WBA','DIS','WM','WAT','WEC','WFC','WDC','WU','WY','WHR','WMB',
+		       'WLTW','WYNN','XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS']
+
+    stocks = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close',
+                                                          'Volume', 'Name'], axis=1)
+    stocks.Date = pd.to_datetime(stocks['Date'])
+    stocks.Date = stocks['Date'].dt.normalize()
+    for tick in tqdm(s_and_p):
+        stock = pd.read_csv('Data/Stocks/'+tick+'_data.csv').drop(['Open','High','Low','Adj Close',
+                                                                   'Volume', 'Name'], axis=1)
+        # stock = stock[stock['Date'] >= '1994-01-01'] ??
+        apd = stock[stock['Date'] >= '1994-01-01'].copy()
+        stocks[tick] = apd['Close']
+    return stocks
+
+"""
+Loads all the macro data from csv files and converts to daily timeframe.
+daily is the name of a stock
+ - Must be stored in Data/Stocks directory
+macro is the name of the macro data
+ - Must be stored in the Data directory
+* You do not need the file extension since we are using .csv only *
+"""
+def loadMacro(daily, macro):
+    dailyData = pd.read_csv('Data/Stocks/'+daily+'.csv')
+    dailyData.Date = pd.to_datetime(dailyData['Date'])
+    dailyData.Date = dailyData['Date'].dt.normalize()
+    dailyData.drop(columns=dailyData.columns[1:], inplace=True)
+    # print(dailyData)
+
+    for fileName in tqdm(macro):
+        #print('Loading '+fileName)
+        data = pd.read_csv('Data/'+fileName+'.csv').dropna()
+        data.DATE = pd.to_datetime(data['DATE'])
+        data.DATE = data['DATE'].dt.normalize()
+        # print(data)
+        # print(type(data.DATE[0]),type(data[data.columns[1]][0]))
+        dailyData[fileName] = turnDaily(dailyData, data)
+
+    return dailyData
+
+def createModel(shape):
+    regressior = Sequential()
+    regressior.add(LSTM(units=256, activation='relu', return_sequences=True, input_shape=(shape[1], 1)))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=128, activation='relu', return_sequences=True))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=64, activation='relu', return_sequences=True))
+    regressior.add(Dropout(0.2))
+    regressior.add(LSTM(units=32, activation='relu'))
+    regressior.add(Dropout(0.2))
+    regressior.add(Dense(units=1))
+    return regressior
+
+def lstm(data, ticker, epochs=5, batch=64):
+    training.drop(training.tail(1).index, inplace=True)
+
+    #Create X,Y Train Set
+    X = np.expand_dims(np.array(training), axis=2)
+    Y = np.array(data[ticker])[1:]
+    # Build network Structure
+    model = createModel(X.shape)
+
+    # Compile and train model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    # Verbose=0 makes it silent
+    model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
+    return model
+
 # Train XLNet
 EPOCHS = 10
 BATCH_SIZE = 28
 MAX_LEN = 128
 dataDr = 'Data/'
+print('XLNet...')
 textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
-                         read_csv=read_csv(dir+'liborfinal.csv'))
+                         read_csv=read_csv(dataDr+'liborfinal.csv'))
 inpts, attMsks = TextPrep(textData, MAX_LEN=MAX_LEN)
 
 # Turn data into torch tensors
@@ -115,91 +225,9 @@ textDaily = DataFrame(textDaily)
 textDaily.dropna()
 textDaily.rename(columns = {'0':'EconPerf'}, inplace = True)
 
-
-
-def loadStocks():
-    #Read in files
-    # Should use the text file
-    s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',
-               'AMG','AFL','A','APD','AKAM','ALK','ALB','ARE','ALXN','ALGN','ALLE',
-               'AGN','ADS','LNT','ALL','GOOGL','GOOG','MO','AMZN','AEE','AAL','AEP',
-               'AXP','AIG','AMT','AWK','AMP','ABC','AME','AMGN','APH','ADI','ANDV',
-               'ANSS','ANTM','AON','AOS','APA','AIV','AAPL','AMAT','APTV','ADM',
-               'AJG','AIZ','T','ADSK','ADP','AZO','AVB','AVY','BLL','BAC','BK',
-               'BAX','BDX','BBY','BIIB','BLK','HRB','BA','BWA','BXP','BSX',
-               'BMY','AVGO','CHRW','CA','COG','CDNS','CPB','COF','CAH','CBOE',
-               'KMX','CCL','CAT','CBS','CNC','CNP','CTL','CERN','CF','SCHW',
-               'CHTR','CHK','CVX','CMG','CB','CHD','CI','XEC','CINF','CTAS','CSCO','C','CFG',
-               'CTXS','CLX','CME','CMS','KO','CTSH','CL','CMCSA','CMA','CAG','CXO','COP',
-               'ED','STZ','COO','GLW','COST','COTY','CCI','CSX','CMI','CVS','DHI',
-               'DHR','DRI','DVA','DE','DAL','XRAY','DVN','DLR','DFS','DISCA','DISCK','DISH',
-               'DG','DLTR','D','DOV','DTE','DRE','DUK','DXC','ETFC','EMN','ETN',
-               'EBAY','ECL','EIX','EW','EA','EMR','ETR','EVHC','EOG','EQT','EFX','EQIX','EQR',
-               'ESS','EL','ES','RE','EXC','EXPE','EXPD','ESRX','EXR','XOM','FFIV','FB','FAST',
-               'FRT','FDX','FIS','FITB','FE','FISV','FLIR','FLS','FLR','FMC','FL','F',
-	           'FBHS','BEN','FCX','GPS','GRMN','IT','GD','GE','GIS','GM','GPC','GILD',
-		       'GPN','GS','GT','GWW','HAL','HBI','HOG','HIG','HAS','HCA','HP','HSIC',
-		       'HSY','HES','HLT','HOLX','HD','HON','HRL','HST','HPQ','HUM','HBAN','HII',
-		       'IDXX','INFO','ITW','ILMN','INTC','ICE','IBM','INCY','IP','IPG','IFF','INTU',
-		       'ISRG','IVZ','IQV','IRM','JEC','JBHT','SJM','JNJ','JCI','JPM','JNPR','KSU','K','KEY',
-		       'KMB','KIM','KMI','KLAC','KSS','KR','LB','LH','LRCX','LEG','LEN',
-		       'LLY','LNC','LKQ','LMT','L','LOW','LYB','MTB','MAC','M','MRO','MPC','MAR','MMC','MLM',
-		       'MAS','MA','MAT','MKC','MCD','MCK','MDT','MRK','MET','MTD','MGM','MCHP','MU',
-		       'MSFT','MAA','MHK','TAP','MDLZ','MON','MNST','MCO','MS','MOS','MSI','MYL','NDAQ',
-		       'NOV','NAVI','NTAP','NFLX','NWL','NFX','NEM','NWSA','NWS','NEE','NLSN','NKE','NI',
-		       'NBL','JWN','NSC','NTRS','NOC','NCLH','NRG','NUE','NVDA','ORLY','OXY','OMC','OKE',
-		       'ORCL','PCAR','PKG','PH','PDCO','PAYX','PNR','PBCT','PEP','PKI','PRGO','PFE',
-		       'PCG','PM','PSX','PNW','PXD','PNC','RL','PPG','PPL','PFG','PG','PGR',
-		       'PLD','PRU','PEG','PSA','PHM','PVH','PWR','QCOM','DGX','RRC','RJF','RTN','O',
-		       'REG','REGN','RF','RSG','RMD','RHI','ROK','COL','ROP','ROST','RCL','CRM','SBAC',
-		       'SLB','SNI','STX','SEE','SRE','SHW','SIG','SPG','SWKS','SLG','SNA','SO','LUV',
-		       'SPGI','SWK','SBUX','STT','SRCL','SYK','STI','SYF','SNPS','SYY','TROW','TPR',
-		       'TGT','TEL','FTI','TXN','TXT','TMO','TIF','TWX','TJX','TSCO','TDG','TRV',
-		       'TRIP','TSN','UDR','ULTA','USB','UAA','UNP','UAL','UNH','UPS','URI',
-		       'UTX','UHS','UNM','VFC','VLO','VAR','VTR','VRSN','VRSK','VZ','VRTX','V','VNO',
-		       'VMC','WMT','WBA','DIS','WM','WAT','WEC','WFC','WDC','WU','WY','WHR','WMB',
-		       'WLTW','WYNN','XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS']
-
-    stocks = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close',
-                                                          'Volume', 'Name'], axis=1)
-    stocks.Date = pd.to_datetime(stocks['Date'])
-    stocks.Date = stocks['Date'].dt.normalize()
-    for tick in tqdm(s_and_p):
-        stock = pd.read_csv('Data/Stocks/'+tick+'_data.csv').drop(['Open','High','Low','Adj Close',
-                                                                   'Volume', 'Name'], axis=1)
-        # stock = stock[stock['Date'] >= '1994-01-01'] ??
-        apd = stock[stock['Date'] >= '1994-01-01'].copy()
-        stocks[tick] = apd['Close']
-    return stocks
-
 # Begin RNN LSTM
+print('Loading Stocks...')
 stocks = loadStocks()
-
-"""
-Loads all the macro data from csv files and converts to daily timeframe.
-daily is the name of a stock
- - Must be stored in Data/Stocks directory
-macro is the name of the macro data
- - Must be stored in the Data directory
-* You do not need the file extension since we are using .csv only *
-"""
-def loadMacro(daily, macro):
-    dailyData = pd.read_csv('Data/Stocks/'+daily+'.csv')
-    dailyData.Date = pd.to_datetime(dailyData['Date'])
-    dailyData.Date = dailyData['Date'].dt.normalize()
-    dailyData.drop(columns=dailyData.columns[1:], inplace=True)
-    # print(dailyData)
-
-    for fileName in tqdm(macro):
-        #print('Loading '+fileName)
-        data = pd.read_csv('Data/'+fileName+'.csv').dropna()
-        data.DATE = pd.to_datetime(data['DATE'])
-        data.DATE = data['DATE'].dt.normalize()
-        # print(data)
-        # print(type(data.DATE[0]),type(data[data.columns[1]][0]))
-        dailyData[fileName] = turnDaily(dailyData, data)
-
-    return dailyData
 
 # Read in files
 macroFiles = ['liborfinal','GDPC1','CPIAUCSL','MICH','UNRATENSA']
@@ -214,36 +242,9 @@ data.rename(columns={'Date':'DATE'}, inplace=True)
 data_training = data[data['DATE']<'2009-01-01']
 data_test = data[data['DATE']>='2009-01-01']
 
-def createModel(shape):
-    regressior = Sequential()
-    regressior.add(LSTM(units=256, activation='relu', return_sequences=True, input_shape=(shape[1], 1)))
-    regressior.add(Dropout(0.2))
-    regressior.add(LSTM(units=128, activation='relu', return_sequences=True))
-    regressior.add(Dropout(0.2))
-    regressior.add(LSTM(units=64, activation='relu', return_sequences=True))
-    regressior.add(Dropout(0.2))
-    regressior.add(LSTM(units=32, activation='relu'))
-    regressior.add(Dropout(0.2))
-    regressior.add(Dense(units=1))
-    return regressior
-
-def lstm(data, ticker, epochs=5, batch=64):
-    training.drop(training.tail(1).index, inplace=True)
-
-    #Create X,Y Train Set
-    X = np.expand_dims(np.array(training), axis=2)
-    Y = np.array(data[ticker])[1:]
-    # Build network Structure
-    model = createModel(X.shape)
-
-    # Compile and train model
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    # Verbose=0 makes it silent
-    model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
-    return model
-
 #Create test and training sets
 mae = []
+print('Testing Stocks...')
 for stock in stocks.columns:
     modelColumns = np.append(macroFiles, stock)
     training = data_training[modelColumns]
