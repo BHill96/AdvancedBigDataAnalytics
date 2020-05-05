@@ -29,14 +29,14 @@ label.
 """
 def CalcSentiment(text, metric, metricType='Monthly'):
     # Prep text data
-    text['Date'] = to_datetime(text['Date'])
-    text['Date'] = text['Date'].dt.normalize()
+    text.Date = to_datetime(text['Date'])
+    text.Date = text['Date'].dt.normalize()
     text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
     text.reset_index(inplace=True)
 
     # Prep metric data
-    metric['DATE'] = to_datetime(metric['DATE'])
-    metric['DATE'] = metric['DATE'].dt.normalize()
+    metric.DATE = to_datetime(metric['DATE'])
+    metric.DATE= metric['DATE'].dt.normalize()
     metricLabel = metric.columns[-1]
     metric[metricLabel] = metric[metricLabel].apply(to_numeric)
 
