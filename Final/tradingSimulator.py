@@ -271,6 +271,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print('Calculating actual returns...')
         interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         actRtns = interval[stocks.Stock]
+        print(actRtns)
         stockTicks = interval.columns
         actRtns = actRtns.iloc[-1]-actRtns.iloc[0]
         actRtns = pd.DataFrame([stockTicks,actRtns])
