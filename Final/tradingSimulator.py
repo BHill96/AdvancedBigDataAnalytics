@@ -207,6 +207,8 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     currentNum = forcastData[forcastData.DATE < t]
     # Find number of stocks
     numStocks = len(forcastData.columns) - (len(macroFiles)+1)
+    expectedRtns = []
+    actualRtns = []
     while t < T[1]:
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
@@ -228,7 +230,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
         forcastDates = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         forcastDates = forcastDates.DATE
-        returns = []
+        rtns = []
         print('Forcasting Stocks...')
         for stock in tqdm(usableStocks):
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
@@ -247,13 +249,14 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             # Calculate the Return
             #print('{0}: {1}'.format(stock, history))
             rtn = history[-1]-history[0]
-            returns.append([stock, rtn])
+            retns.append([stock, rtn])
 
         print('Ranking Stocks...')
         print('Expected Returns:')
-        print(returns)
-        returns = pd.DataFrame(returns, columns=['Stock','Return'])
-        returns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
+        rtns = pd.DataFrame(rtns, columns=['Stock','Return'])
+        rtns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
+        print(rtns)
+        expectedRtns.append(rtns)
 
         print('Buying best {0} stocks...'.format(n))
         stocks = returns.iloc[:n]
@@ -264,10 +267,13 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         actRtns = actRtns.iloc[-1]-actRtns.iloc[0]
         actRtns = pd.DataFrame([stocks.Stock,actRtns])
         print(actRtns)
+        actualRtns.append(actRtns)
+
 
         print('Updating data...')
         t += dt
         currentText = text[text.Date < t]
         currentNum = forcastData[forcastData.DATE < t]
 
+    return actualRtns, expectedRtns
 
