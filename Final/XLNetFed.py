@@ -94,7 +94,7 @@ def TextPrep(sentimentData, MAX_LEN=128):
     CLSToken = tokenizer.tokenize(' [CLS]')
     tokenizedText = tokenizedText.apply(lambda x: x[:MAX_LEN-8]+SEPToken+CLSToken if len(x)>MAX_LEN-4 else x+CLSToken)
     # Create token IDS
-    input_ids = input_ids = tokenizedText.apply(tokenizer.convert_tokens_to_ids)
+    input_ids = tokenizedText.apply(tokenizer.convert_tokens_to_ids)
     input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype='long', truncating='post', padding='post')
     # Attention masks mark how many tokens are in a sentence
     attention_masks = []
