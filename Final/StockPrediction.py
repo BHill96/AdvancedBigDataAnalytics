@@ -239,8 +239,8 @@ data.reset_index(inplace=True)
 data.drop('index', axis=1, inplace=True)
 data.rename(columns={'Date':'DATE'}, inplace=True)
 
-data_training = data[data['DATE']<'2009-01-01']
-data_test = data[data['DATE']>='2009-01-01']
+data_training = data[data['DATE']<'2012-01-01']
+data_test = data[data['DATE']>='2012-01-01']
 
 #Create test and training sets
 mae = []
