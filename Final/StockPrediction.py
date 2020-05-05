@@ -240,6 +240,7 @@ print('Testing Stocks...')
 for stock in stocks.columns[1:]:
     modelColumns = np.append(macroFiles, stock)
     training = data_training[modelColumns]
+    training = training.drop(training.tail(1).index)
     test = data_test[modelColumns]
 
     model = lstm(training, stock)
