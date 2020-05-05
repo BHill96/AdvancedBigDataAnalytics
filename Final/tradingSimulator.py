@@ -246,11 +246,11 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
                 history.append(price[0][0])
             # Calculate the Return
             #print('{0}: {1}'.format(stock, history))
-            rtn = history[-1]-history[0]
-            rtns.append([stock, rtn])
+            rtns.append([stock, history[-1], history[0]])
 
         print('Expected Returns:')
-        rtns = pd.DataFrame(rtns, columns=['Stock','Return'])
+        rtns = pd.DataFrame(rtns, columns=['Stock','Final_Price', 'Init_Price'])
+        rtns['Return'] = rtns.Final_Price - rtns.Init_Price
         rtns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
         # Select best n stocks
         stocks = rtns.iloc[:n]
@@ -260,8 +260,9 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print('Calculating actual returns...')
         interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         actRtns = interval[stocks.Stock]
-        actRtns = actRtns.iloc[-1]-actRtns.iloc[0]
-        actRtns = pd.DataFrame(np.array([stocks.Stock,actRtns]).T, columns=['Stock','Return'])
+        actRtns = pd.DataFrame(np.array([stocks.Stock, actRtns.iloc[-1], actRtns.iloc[0]]).T,
+                               columns=['Stock','Final_Price','Init_Price'])
+        actRtns['Return'] = actRtns.Final_Price - actRtns.Init_Price
         actualRtns.append(actRtns)
         print(actRtns)
 
