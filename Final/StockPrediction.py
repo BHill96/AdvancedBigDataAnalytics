@@ -154,7 +154,7 @@ MAX_LEN = 128
 dataDr = 'Data/'
 print('XLNet...')
 textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
-                         read_csv=read_csv(dataDr+'liborfinal.csv'))
+                         read_csv(dataDr+'liborfinal.csv'))
 inpts, attMsks = TextPrep(textData, MAX_LEN=MAX_LEN)
 
 # Turn data into torch tensors
