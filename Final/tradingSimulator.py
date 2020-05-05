@@ -249,7 +249,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             # Calculate the Return
             #print('{0}: {1}'.format(stock, history))
             rtn = history[-1]-history[0]
-            retns.append([stock, rtn])
+            rtns.append([stock, rtn])
 
         print('Ranking Stocks...')
         print('Expected Returns:')
