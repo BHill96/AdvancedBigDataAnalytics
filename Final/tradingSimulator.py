@@ -20,7 +20,7 @@ from tensorflow.keras.layers import Dense, LSTM, Dropout
 from tensorflow.keras import optimizers
 
 # Silence tensorflow and pandas warnings
-tf.logging.set_verbosity(tf.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 pd.options.mode.chained_assignment = None  # default='warn'
 
 def turnDaily(stock, info):
