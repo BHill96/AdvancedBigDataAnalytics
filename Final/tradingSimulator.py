@@ -206,9 +206,9 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     while t < T[1]:
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
-        usableStocks = bins[riskLevel].tolist()
-        usableStocks.append('DATE')
-        usableStocks = currentNum[usableStocks]
+        usableStockTickers = bins[riskLevel].tolist()
+        usableStockTickers.append('DATE')
+        usableStocks = currentNum[usableStockTickers]
 
         # Requires GPU
         print('Training XLNet...')
@@ -220,9 +220,8 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print('Trained')
         sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)
         currentText['Sentiment'] = sentiment
-        print(usableStocks.columns)
-        print(usableStocks.DATE)
-        sentiment = turnDaily(usableStocks.DATE, currentText[['Date','Sentiment']])
+        sentiment = turnDaily(usableStocks[['DATE', usableStockTickers[0]]],
+                              currentText[['Date','Sentiment']])
 
         print('LSTM training...')
         for stock in usableStocks:
