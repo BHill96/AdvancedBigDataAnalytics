@@ -237,7 +237,7 @@ data_test = data[data['DATE']>='2009-01-01']
 #Create test and training sets
 mae = []
 print('Testing Stocks...')
-for stock in stocks.columns:
+for stock in stocks.columns[1:]:
     modelColumns = np.append(macroFiles, stock)
     training = data_training[modelColumns]
     test = data_test[modelColumns]
