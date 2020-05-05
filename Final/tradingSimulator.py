@@ -104,11 +104,13 @@ def loadStocks():
 		       'VMC','WMT','WBA','DIS','WM','WAT','WEC','WFC','WDC','WU','WY','WHR','WMB',
 		       'WLTW','WYNN','XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS']
 
-    stocks = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close', 'Volume', 'Name'], axis=1)
+    stocks = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close',
+                                                          'Volume', 'Name'], axis=1)
     stocks['Date'] = pd.to_datetime(stocks['Date'])
     stocks['Date'] = stocks['Date'].dt.normalize()
     for tick in tqdm(s_and_p):
-        stock = pd.read_csv('Data/Stocks/'+tick+'_data.csv').drop(['Open','High','Low','Adj Close','Volume', 'Name'], axis=1)
+        stock = pd.read_csv('Data/Stocks/'+tick+'_data.csv').drop(['Open','High','Low','Adj Close',
+                                                                   'Volume', 'Name'], axis=1)
         # stock = stock[stock['Date'] >= '1994-01-01'] ??
         apd = stock[stock['Date'] >= '1994-01-01'].copy()
         stocks[tick] = apd['Close']
@@ -212,6 +214,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
         print(type(inpt))
+        print(inpt)
         print(type(inpt[:-1]))
         model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf[:-1]), batch_size=batch,
                                epochs=epochs)
