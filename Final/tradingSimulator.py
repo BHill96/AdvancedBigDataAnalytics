@@ -19,12 +19,14 @@ from tensorflow.keras.layers import Dense, LSTM, Dropout
 from tensorflow.keras import optimizers
 
 def turnDaily(stock, info):
+    stockDate = stock.columns[0]
+    infoDate = stock.columns[0]
     daily = []
     colLabel = info.columns[1]
     i=len(info)-1
     j=len(stock)-1
     while j > -1 and i > -1:
-        if info['DATE'][i] < stock['Date'][j]:
+        if info[infoDate][i] < stock[stockDate][j]:
             # print('{2}: {0}<{1}'.format(info['DATE'][i], stock['Date'][j], j))
             daily.append(info[colLabel][i])
             j = j-1
@@ -203,18 +205,18 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
         usableStocks = currentNum[bins[riskLevel]]
-        print(usableStocks)
 
         # Requires GPU
         print('Training XLNet...')
         sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
-        model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf[:-1]), batch_size=batch, epochs=epochs)
-        sentiment = XLNetFed.predict(model(inpt, attMsk))
+        model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf[:-1]), batch_size=batch,
+                               epochs=epochs)
+        currentText['Sentiment'] = XLNetFed.Predict(model(inpt, attMsk))
+        sentiment = turnDaily(usableStocks['DATE'], currentText[['Date','Sentiment']])
 
         print('LSTM training...')
-        #sentiment = 1
         for stock in usableStocks:
             model = lstm(currentNum[['DATE',stock]], currentNum[macroFilesDate], sentiment)
             print('trained')
