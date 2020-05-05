@@ -29,7 +29,7 @@ if __name__ == '__main__':
     """ set the download window """
     begTime = datetime.now()
     nowTime = date(2019, 12, 31)
-    startTime = date(1994, 1, 1)
+    startTime = date(1994, 2, 5)
 
     """ list of s_anp_p companies """
     s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',

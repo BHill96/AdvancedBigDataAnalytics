@@ -127,7 +127,7 @@ x = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/CI_data.csv').drop([
 stocks['Date'] = x['Date']
 for i in s_and_p:
     s = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/' + i + '_data.csv').drop(['Open','High','Low','Adj Close','Volume', 'Name'], axis = 1)
-    apd = s[s['Date'] >= '1994-02-04'].copy()
+    apd = s[s['Date'] >= '1994-02-05'].copy()
     stocks[i] = apd['Close']
 
 stocks.dropna(axis = 'columns', inplace = True)
