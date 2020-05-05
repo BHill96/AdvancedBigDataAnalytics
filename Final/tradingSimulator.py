@@ -11,6 +11,7 @@ from tqdm import tqdm
 import datetime
 from dateutil.relativedelta import relativedelta
 import XLNetFed
+import numpy as np
 
 def turnDaily(stock, info):
     daily = []
@@ -116,10 +117,11 @@ This repeats until tEnd.
 T = [tBegin, tEnd] the interval of simulation (string yyyy/mm/dd)
 dt = time until portfolio needs to be reavaluated (months)
 n = number of best stocks to trade with after ranking
+riskLevel = how risky you want the portfolio to be from 0 to numRiskLevels-1
 xlnetMetric = name of macro file to use for sentiment analysis
 xlnetMetricType = 'Daily' or 'Quarterly'
 """
-def simulateMarket(T, dt, n, xlnetMetric, riskLevel, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24,
+def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24,
                    epochs=10):
     # Turn to datetime
     T = pd.to_datetime(T)
@@ -132,7 +134,6 @@ def simulateMarket(T, dt, n, xlnetMetric, riskLevel, xlnetMetricType='Quarterly'
     forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
     forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
     forcastData.rename(columns={'Date':'DATE'}, inplace=True)
-    # print(forcastData)
     # Keep text separate
     text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
     text['Date'] = pd.to_datetime(text['Date'])
@@ -142,19 +143,32 @@ def simulateMarket(T, dt, n, xlnetMetric, riskLevel, xlnetMetricType='Quarterly'
     # Prep data for simulation
     t = T[0]
     currentText = text[text.Date <= t]
-    # print(currentText)
     currentNum = forcastData[forcastData.DATE <= t]
-    # print(currentNum)
+    # Find number of stocks
+    numStocks = len(forcastData.columns) - (len(macroFiles)+1)
     while t < T[1]:
+        print('Selecting stocks based on risk...')
+        # Should we normalize it first?
+        variance = currentNum.var(axis=0)[len(macroFiles)+1:].sort_values(ascending=True, axis=0)
+        # If numRiskLevels does not easily divide numStocks, the riskiest bin will be smaller
+        binSize = int(np.ceil(numStocks/numRiskLevels))
+        bins = []
+        for i in range(0, numRiskLevels-1):
+            lb = i*binSize
+            ub = (i+1)*binSize
+            bins.append(variance.index[lb:ub])
+        bins.append(variance.index[ub:])
+        usableStocks = currentNum[bins[riskLevel]]
+        print(usableStocks)
+
         # Requires GPU
         print('Training XLNet...')
-        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
+        """sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
         model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch,
-                                     epochs=epochs)
+                                     epochs=epochs)"""
 
-        print('Selecting stocks based on risk...')
         print('LSTM training...')
         print('Caclulating expected returns...')
         print('Ranking Stocks...')
