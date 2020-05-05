@@ -8,10 +8,10 @@ Created on Mon Mar 30 01:01:13 2020
 
 from pandas import read_csv, read_excel, concat, merge_asof, DataFrame, to_datetime
 import pandas as pd
-import torch
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from XLNetFed import CalcSentiment, TextPrep
-from transformers import XLNetForSequenceClassification, AdamW
+#import torch
+#from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+#from XLNetFed import CalcSentiment, TextPrep
+#from transformers import XLNetForSequenceClassification, AdamW
 from tqdm import trange, tqdm
 import numpy as np
 from numpy import argmax
@@ -132,7 +132,7 @@ def createModel(shape):
     return regressior
 
 def lstm(data, ticker, epochs=5, batch=64):
-    training.drop(training.tail(1).index, inplace=True)
+    training = data.drop(data.tail(1).index)
 
     #Create X,Y Train Set
     X = np.expand_dims(np.array(training), axis=2)
@@ -152,7 +152,10 @@ BATCH_SIZE = 28
 MAX_LEN = 128
 dataDr = 'Data/'
 print('XLNet...')
-textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
+textData = read_csv(dataDr+'FedTextData.csv',names=['Date','Text'])
+textData.Date = pd.to_datetime(textData['Date'])
+textData.Date = textData['Date'].dt.normalize()
+"""textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
                          read_csv(dataDr+'liborfinal.csv'))
 inpts, attMsks = TextPrep(textData, MAX_LEN=MAX_LEN)
 
@@ -212,9 +215,10 @@ for batch in evalDataloader:
         logits = output[0]
     logits = logits.detach().cpu().numpy()
     labels = np.append(labels, argmax(logits, axis=1).flatten())
-
+"""
 textPred = DataFrame(textData.Date, columns=['Date'])
-textPred['Label'] = labels
+#textPred['Label'] = labels
+textPred['Label'] = [1 for _ in range(0,len(textPred.index))]
 
 # Begin RNN LSTM
 print('Loading Stocks...')
@@ -240,7 +244,6 @@ print('Testing Stocks...')
 for stock in stocks.columns[1:]:
     modelColumns = np.append(macroFiles, stock)
     training = data_training[modelColumns]
-    training = training.drop(training.tail(1).index)
     test = data_test[modelColumns]
 
     model = lstm(training, stock)
