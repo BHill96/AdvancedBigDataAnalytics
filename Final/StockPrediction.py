@@ -8,10 +8,10 @@ Created on Mon Mar 30 01:01:13 2020
 
 from pandas import read_csv, read_excel, concat, merge_asof, DataFrame, to_datetime
 import pandas as pd
-#import torch
-#from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-#from XLNetFed import CalcSentiment, TextPrep
-#from transformers import XLNetForSequenceClassification, AdamW
+import torch
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+from XLNetFed import CalcSentiment, TextPrep
+from transformers import XLNetForSequenceClassification, AdamW
 from tqdm import trange, tqdm
 import numpy as np
 from numpy import argmax
@@ -19,6 +19,10 @@ from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
+
+# Silence tensorflow and pandas warnings
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+pd.options.mode.chained_assignment = None  # default='warn'
 
 def turnDaily(stock, info):
     stockDate = stock.columns[0]
@@ -152,10 +156,10 @@ BATCH_SIZE = 28
 MAX_LEN = 128
 dataDr = 'Data/'
 print('XLNet...')
-textData = read_csv(dataDr+'FedTextData.csv',names=['Date','Text'])
-textData.Date = pd.to_datetime(textData['Date'])
-textData.Date = textData['Date'].dt.normalize()
-"""textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
+#textData = read_csv(dataDr+'FedTextData.csv',names=['Date','Text'])
+#textData.Date = pd.to_datetime(textData['Date'])
+#textData.Date = textData['Date'].dt.normalize()
+textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
                          read_csv(dataDr+'liborfinal.csv'))
 inpts, attMsks = TextPrep(textData, MAX_LEN=MAX_LEN)
 
@@ -215,7 +219,7 @@ for batch in evalDataloader:
         logits = output[0]
     logits = logits.detach().cpu().numpy()
     labels = np.append(labels, argmax(logits, axis=1).flatten())
-"""
+
 textPred = DataFrame(textData.Date, columns=['Date'])
 #textPred['Label'] = labels
 textPred['Label'] = [1 for _ in range(0,len(textPred.index))]
@@ -256,7 +260,7 @@ for stock in stocks.columns[1:]:
     pred = model.predict(X)
     predict = pred.tolist()
     mae.append([stock, mean_absolute_error(predict,actual)])
-    print('Stock {0} MAE {1}'.format(stock, mae))
+    print('Stock {0} MAE {1}'.format(stock, mae[-1][1]))
 
 mae = pd.DataFrame(mae)
 mae.to_csv('Data/finalModelMAE.csv')
