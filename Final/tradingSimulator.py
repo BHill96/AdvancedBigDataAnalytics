@@ -45,16 +45,16 @@ macro is the name of the macro data
 """
 def loadMacro(daily, macro):
     dailyData = pd.read_csv('Data/Stocks/'+daily+'.csv')
-    dailyData['Date'] = pd.to_datetime(dailyData['Date'])
-    dailyData['Date'] = dailyData['Date'].dt.normalize()
+    dailyData.Date = pd.to_datetime(dailyData['Date'])
+    dailyData.Date = dailyData['Date'].dt.normalize()
     dailyData.drop(columns=dailyData.columns[1:], inplace=True)
     # print(dailyData)
 
     for fileName in tqdm(macro):
         #print('Loading '+fileName)
         data = pd.read_csv('Data/'+fileName+'.csv').dropna()
-        data['DATE'] = pd.to_datetime(data['DATE'])
-        data['DATE'] = data['DATE'].dt.normalize()
+        data.DATE = pd.to_datetime(data['DATE'])
+        data.DATE = data['DATE'].dt.normalize()
         # print(data)
         # print(type(data.DATE[0]),type(data[data.columns[1]][0]))
         dailyData[fileName] = turnDaily(dailyData, data)
@@ -106,8 +106,8 @@ def loadStocks():
 
     stocks = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close',
                                                           'Volume', 'Name'], axis=1)
-    stocks['Date'] = pd.to_datetime(stocks['Date'])
-    stocks['Date'] = stocks['Date'].dt.normalize()
+    stocks.Date = pd.to_datetime(stocks['Date'])
+    stocks.Date = stocks['Date'].dt.normalize()
     for tick in tqdm(s_and_p):
         stock = pd.read_csv('Data/Stocks/'+tick+'_data.csv').drop(['Open','High','Low','Adj Close',
                                                                    'Volume', 'Name'], axis=1)
@@ -191,8 +191,8 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     forcastData.rename(columns={'Date':'DATE'}, inplace=True)
     # Keep text separate
     text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
-    text['Date'] = pd.to_datetime(text['Date'])
-    text['Date'] = text['Date'].dt.normalize()
+    text.Date = pd.to_datetime(text['Date'])
+    text.Date = text['Date'].dt.normalize()
     text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
 
     # Prep data for simulation
