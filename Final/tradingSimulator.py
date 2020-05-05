@@ -203,8 +203,8 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
     # Prep data for simulation
     t = T[0]
-    currentText = text[text.Date < t]
-    currentNum = forcastData[forcastData.DATE < t]
+    currentText = text[text.Date <= t]
+    currentNum = forcastData[forcastData.DATE <= t]
     # Find number of stocks
     numStocks = len(forcastData.columns) - (len(macroFiles)+1)
     expectedRtns = []
@@ -235,8 +235,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
             day = interval[lstmColumns].iloc[-1]
-            print(day)
-            day = deepcopy(day.drop('DATE'))
+            day = deepcopy(interval[lstmColumns].iloc[-1].drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
                 #print('stock: {0}'.format(day[stock]))
@@ -269,8 +268,8 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
         print('Updating data...')
         t += dt
-        currentText = text[text.Date < t]
-        currentNum = forcastData[forcastData.DATE < t]
+        currentText = text[text.Date <= t]
+        currentNum = forcastData[forcastData.DATE <= t]
 
     return actualRtns, expectedRtns
 
