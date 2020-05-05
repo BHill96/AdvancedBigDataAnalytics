@@ -43,8 +43,9 @@ def CalcSentiment(text, metric, metricType='Monthly'):
     if metricType == 'Daily':
         sentimentData = text.merge(metric, left_on='Date', right_on='DATE', how='left')
     elif metricType == 'Monthly':
-        sentimentData = text.merge(DataFrame(turnDaily(text, metric)).rename({0:'Date', 1:metricLabel}, axis=1), on='Date',
-                                          how='left')
+        sentimentData = text.merge(DataFrame(turnDaily(text, metric)).rename({0:'Date', 1:metricLabel},
+                                                                              axis=1),
+                                   on='Date', how='left')
     else:
         print('ERROR: info of type {0}'.format(metricType))
 
@@ -96,6 +97,8 @@ def TextPrep(sentimentData, MAX_LEN=128):
     # Create token IDS
     input_ids = tokenizedText.apply(tokenizer.convert_tokens_to_ids)
     input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype='long', truncating='post', padding='post')
+    print(type(input_ids))
+    print(input_ids)
     # Attention masks mark how many tokens are in a sentence
     attention_masks = []
     for seq in input_ids:
