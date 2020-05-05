@@ -154,7 +154,6 @@ def lstm(data, ticker, epochs=5, batch=64):
 
     #Create X,Y Train Set
     X = np.expand_dims(np.array(training), axis=2)
-    print(X.shape)
     Y = np.array(data[ticker])[1:]
     # Build network Structure
     model = createModel(X.shape)
@@ -242,10 +241,9 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             history = [day[stock]]
             for _ in forcastDates:
                 lstmInput = np.reshape(np.array(day, np.float), (1,len(day),1))
-                print(lstmInput.shape)
                 price = model.predict(lstmInput)
-                day.loc[stock] = price
-                history.append(price)
+                day.loc[stock] = price[0][0]
+                history.append(price[0][0])
             # Calculate the Return
             print('{0}: {1}'.format(stock, history))
             returns.append([stock, history[-1]-history[0]])
