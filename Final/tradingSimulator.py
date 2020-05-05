@@ -150,7 +150,6 @@ def lstm(data, ticker, epochs=5, batch=64):
     #Create X,Y Train Set
     X = np.expand_dims(np.array(training), axis = 2)
     Y = np.array(data[ticker])[1:]
-    print(X,Y)
     # Build network Structure
     model = createModel(X.shape)
 
