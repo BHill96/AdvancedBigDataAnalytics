@@ -119,7 +119,8 @@ n = number of best stocks to trade with after ranking
 xlnetMetric = name of macro file to use for sentiment analysis
 xlnetMetricType = 'Daily' or 'Quarterly'
 """
-def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24, epochs=10):
+def simulateMarket(T, dt, n, xlnetMetric, riskLevel, xlnetMetricType='Quarterly', MAX_LEN=128, batch=24,
+                   epochs=10):
     # Turn to datetime
     T = pd.to_datetime(T)
     dt = relativedelta(months=+dt)
@@ -131,7 +132,7 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
     forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
     forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
     forcastData.rename(columns={'Date':'DATE'}, inplace=True)
-    print(forcastData)
+    # print(forcastData)
     # Keep text separate
     text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
     text['Date'] = pd.to_datetime(text['Date'])
@@ -147,9 +148,11 @@ def simulateMarket(T, dt, n, xlnetMetric, xlnetMetricType='Quarterly', MAX_LEN=1
     while t < T[1]:
         # Requires GPU
         print('Training XLNet...')
-        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]], metricType=xlnetMetricType)
+        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
+                                           metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(sentiment, MAX_LEN=MAX_LEN)
-        model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch, epochs=epochs)
+        model, _, _ = XLNetFed.Train(inpt, attMsk, list(sentiment.Econ_Perf), batch_size=batch,
+                                     epochs=epochs)
 
         print('Selecting stocks based on risk...')
         print('LSTM training...')
