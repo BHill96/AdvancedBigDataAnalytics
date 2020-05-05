@@ -222,7 +222,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         currentText['Sentiment'] = sentiment
         print(usableStocks.columns)
         print(usableStocks.DATE)
-        sentiment = turnDaily(usableStocks.DATE, currentText[['Date','Sentiment']])"""
+        sentiment = turnDaily(usableStocks.DATE, currentText[['Date','Sentiment']])
 
         print('LSTM training...')
         for stock in usableStocks:
