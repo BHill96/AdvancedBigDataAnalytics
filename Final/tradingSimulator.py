@@ -234,8 +234,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
-            day = interval[lstmColumns].iloc[-1]
-            day = deepcopy(interval[lstmColumns].iloc[-1].drop('DATE'))
+            day = deepcopy(currentNum[lstmColumns].iloc[-1].drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
                 #print('stock: {0}'.format(day[stock]))
