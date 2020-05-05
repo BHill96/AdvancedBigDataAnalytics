@@ -143,13 +143,13 @@ def createModel(shape):
     regressior.add(Dense(units=1))
     return regressior
 
-def lstm(data, epochs=5, batch=64):
+def lstm(data, ticker, epochs=5, batch=64):
     training = data.drop(columns=['DATE'], axis=1)
     training.drop(training.tail(1).index, inplace=True)
 
     #Create X,Y Train Set
     X = np.expand_dims(np.array(training), axis = 2)
-    Y = np.array(data[data.columns[1]])[1:]
+    Y = np.array(data[ticker])[1:]
     print(X,Y)
     # Build network Structure
     model = createModel(X.shape)
@@ -227,7 +227,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         for stock in usableStocks:
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
-            model = lstm(modelData)
+            model = lstm(modelData, stock)
             print('trained')
             history = [modelData.iloc[-1]]
             print(history)
