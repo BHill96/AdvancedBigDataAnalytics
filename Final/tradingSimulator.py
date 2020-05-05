@@ -226,15 +226,16 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         currentNum['Sentiment'] = turnDaily(currentNum[['DATE', usableStocks[0]]],
                                             currentText[['Date','Sentiment']])
 
-        forcastDates = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
-        forcastDates = forcastDates.DATE
+        interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
+        forcastDates = interval.DATE
         rtns = []
         print('Forcasting Stocks...')
         for stock in tqdm(usableStocks):
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
-            day = deepcopy(modelData.iloc[-1].drop('DATE'))
+            day = interval[lstmColumns].iloc[-1]
+            day = deepcopy(day.drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
                 #print('stock: {0}'.format(day[stock]))
@@ -258,7 +259,6 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         print(stocks)
 
         print('Calculating actual returns...')
-        interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
         actRtns = interval[stocks.Stock]
         actRtns = pd.DataFrame(np.array([stocks.Stock, actRtns.iloc[-1], actRtns.iloc[0]]).T,
                                columns=['Stock','Final_Price','Init_Price'])
