@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import datetime
 from dateutil.relativedelta import relativedelta
-import XLNetFed
+#import XLNetFed
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 from tensorflow.keras import Sequential
@@ -27,11 +27,11 @@ def turnDaily(stock, info):
     j=len(stock)-1
     while j > -1 and i > -1:
         if info[infoDate][i] < stock[stockDate][j]:
-            # print('{2}: {0}<{1}'.format(info['DATE'][i], stock['Date'][j], j))
+            #print('{2}: {0}<{1}'.format(info[infoDate][i], stock[stockDate][j], j))
             daily.append(info[colLabel][i])
             j = j-1
         else:
-            # print('{2}: {0}>{1}'.format(info['DATE'][i], stock['Date'][j], i))
+            #print('{2}: {0}>{1}'.format(info[infoDate][i], stock[stockDate][j], i))
             i = i-1
     return daily[::-1]
 
@@ -64,6 +64,7 @@ def loadMacro(daily, macro):
 
 def loadStocks():
     #Read in files
+    # Should use the text file
     s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',
                'AMG','AFL','A','APD','AKAM','ALK','ALB','ARE','ALXN','ALGN','ALLE',
                'AGN','ADS','LNT','ALL','GOOGL','GOOG','MO','AMZN','AEE','AAL','AEP',
@@ -142,18 +143,14 @@ def createModel(shape):
     regressior.add(Dense(units=1))
     return regressior
 
-def lstm(stock, macroData, sentiment, epochs=5, batch=64):
-    training = pd.merge(stock, macroData, on='DATE')
-    training['sentiment'] = turnDaily(stock, sentiment)
-    training.drop(columns=['DATE'], inplace=True, axis=1)
+def lstm(data, epochs=5, batch=64):
+    training = data.drop(columns=['DATE'], axis=1)
     training.drop(training.tail(1).index, inplace=True)
-    training = np.array(training)
-    print(training)
 
     #Create X,Y Train Set
-    X = np.expand_dims(training, axis = 2)
-    Y = np.array(stock[stock.columns[1]])[1:]
-
+    X = np.expand_dims(np.array(training), axis = 2)
+    Y = np.array(data[data.columns[1]])[1:]
+    print(X,Y)
     # Build network Structure
     model = createModel(X.shape)
 
@@ -188,12 +185,16 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     stocks = loadStocks()
     forcastData = pd.merge(macroDaily, stocks, on='Date', how='outer').dropna(axis=1)
     forcastData.sort_values(['Date'], inplace=True, axis=0, ascending=True)
+    forcastData.reset_index(inplace=True)
+    forcastData.drop('index', axis=1, inplace=True)
     forcastData.rename(columns={'Date':'DATE'}, inplace=True)
     # Keep text separate
     text = pd.read_csv('Data/FedTextData.csv', names=['Date','Text'])
     text.Date = pd.to_datetime(text['Date'])
     text.Date = text['Date'].dt.normalize()
     text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
+    text.reset_index(inplace=True)
+    text.drop('index', axis=1, inplace=True)
 
     # Prep data for simulation
     t = T[0]
@@ -201,8 +202,6 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
     currentNum = forcastData[forcastData.DATE < t]
     # Find number of stocks
     numStocks = len(forcastData.columns) - (len(macroFiles)+1)
-    macroFilesDate = deepcopy(macroFiles)
-    macroFilesDate.append('DATE')
     while t < T[1]:
         print('Selecting stocks based on risk...')
         bins = riskBins(stocks=currentNum, numStocks=numStocks, numRiskLevels=numRiskLevels)
@@ -212,23 +211,25 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
         # Requires GPU
         print('Training XLNet...')
-        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
+        """sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(currentText, MAX_LEN=MAX_LEN)
         model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf), batch_size=batch,
                                epochs=epochs)
-        print('Trained')
-        sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)
+        print('Trained')"
+        sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)"""
+        sentiment = [1 for _ in range(0, len(currentText))]
         currentText['Sentiment'] = sentiment
-        currentText.Sentiment = turnDaily(usableStocks[['DATE', usableStockTickers[0]]],
-                                          currentText[['Date','Sentiment']])
+        currentNum['Sentiment'] = turnDaily(usableStocks[['DATE', usableStockTickers[0]]],
+                                            currentText[['Date','Sentiment']])
 
         print('LSTM training...')
         for stock in usableStocks:
-            model = lstm(currentNum[['DATE',stock]], currentNum[macroFilesDate],
-                         currentText[['Date','Sentiment']])
+            lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
+            modelData = currentNum[lstmColumns]
+            model = lstm(modelData)
             print('trained')
-            history = [currentNum.iloc[-1]]
+            history = [modelData.iloc[-1]]
             print(history)
             #for date in forcastData[(forcastData.Date > t) & (forcastData.DATE <= t+dt)]:
              #   model
