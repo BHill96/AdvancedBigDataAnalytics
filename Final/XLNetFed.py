@@ -6,7 +6,7 @@ Created on Sat Mar 21 14:53:07 2020
 @author: blakehillier
 """
 
-from pandas import to_datetime, DataFrame, concat
+from pandas import to_datetime, DataFrame, to_numeric
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras.preprocessing.sequence import pad_sequences
@@ -27,14 +27,18 @@ label.
 *** The value in metric must be the last column in the csv file
 """
 def CalcSentiment(text, metric, metricType='Monthly'):
+    # Prep text data
     text['Date'] = to_datetime(text['Date'])
     text['Date'] = text['Date'].dt.normalize()
     text.sort_values(['Date'], inplace=True, axis=0, ascending=True)
     text.reset_index(inplace=True)
+
+    # Prep metric data
     metric['DATE'] = to_datetime(metric['DATE'])
     metric['DATE'] = metric['DATE'].dt.normalize()
     metricLabel = metric.columns[-1]
-    # metric.drop(labels=['LN Close', 'Volume', 'LN Volume'], axis=1, inplace=True)
+    metric[metricLabel] = metric[metricLabel].apply(to_numeric)
+    print(type(metric[metricLabel][0]))
 
     if metricType == 'Daily':
         sentimentData = text.merge(metric, left_on='Date', right_on='DATE', how='left')
@@ -108,15 +112,13 @@ def flat_accuracy(preds, labels):
     return sum(pred_flat == labels_flat) / len(labels_flat)
 
 """
-Trains the model on batches and epochs, validating each epoch to judge convergence. SHOULD NOT BE USED FOR FINAL TRAINING.
+Trains the model on batches and epochs, validating each epoch to judge convergence.
+SHOULD NOT BE USED FOR FINAL TRAINING.
 """
-def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10):
-    train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(inputIds,
-                                                                                        labels,
-                                                                                        random_state=2020,
-                                                                                        test_size=0.2)
-    train_masks, validation_masks, _, _ = train_test_split(attention_masks, inputIds, random_state=2020,
-                                                           test_size=0.2)
+def TrainTest(inputIds, attention_masks, labels, batch_size=24, epochs=10, test_size=0.2):
+    train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(inputIds,labels,
+                                                                                        test_size=test_size)
+    train_masks, validation_masks, _, _ = train_test_split(attention_masks, inputIds, test_size=test_size)
     # Turn data into torch tensors
     train_inputs = torch.tensor(train_inputs)
     validation_inputs = torch.tensor(validation_inputs)
@@ -204,3 +206,51 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10):
 
     return model, trainLoss[-1]/nb_tr_steps, valAcc[-1]/nb_eval_steps
 
+"""
+Trains the model on the entire data set.
+USE FOR FINAL MODEL
+"""
+def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10, test_size=0.2):
+    # Turn data into torch tensors
+    inputIds = torch.tensor(inputIds)
+    attention_masks = torch.tensor(attention_masks)
+    labels = torch.tensor(labels)
+
+    # Create Iterators of the datasets
+    data = TensorDataset(inputIds, attention_masks, labels)
+    sampler = RandomSampler(data)
+    dataloader = DataLoader(data, sampler=sampler, batch_size=batch_size)
+
+    model = XLNetForSequenceClassification.from_pretrained('xlnet-base-cased', num_labels=2)
+    # Loads model into GPU memory
+    model.cuda()
+
+    param_optimizer = list(model.named_parameters())
+    no_decay = ['bias','gamma','beta']
+    optimizer_grouped_parameters = [
+        {'params':[p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+         'weight_decay_rate':0.01},
+        {'params':[p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+         'weight_decay_rate':0.0}
+    ]
+    optimizer = AdamW(optimizer_grouped_parameters, lr=2e-5)
+
+    # Find GPU or CPU
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    for _ in trange(epochs, desc='Epoch'):
+        # Train
+        model.train()
+        for step, batch in enumerate(dataloader):
+            batch = tuple(t.to(device) for t in batch)
+            b_input_ids, b_input_mask, b_labels = batch
+            optimizer.zero_grad()
+            # Forward pass and loss calculation
+            outputs = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask,
+                            labels=b_labels)
+            loss = outputs[0]
+            # Calculate gradients
+            loss.backward()
+            # Update weights using gradients
+            optimizer.step()
+
+    return model
