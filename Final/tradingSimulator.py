@@ -14,9 +14,14 @@ from dateutil.relativedelta import relativedelta
 #import XLNetFed
 import numpy as np
 from sklearn.metrics import mean_absolute_error
+import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 from tensorflow.keras import optimizers
+
+# Silence tensorflow and pandas warnings
+tf.logging.set_verbosity(tf.logging.ERROR)
+pd.options.mode.chained_assignment = None  # default='warn'
 
 def turnDaily(stock, info):
     stockDate = stock.columns[0]
