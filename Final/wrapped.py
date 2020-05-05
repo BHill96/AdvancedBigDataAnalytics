@@ -53,24 +53,24 @@ inflation['DATE'] = inflation['DATE'].dt.normalize()
 
 unemployment['DATE'] = pd.to_datetime(unemployment['DATE'])
 unemployment['DATE'] = unemployment['DATE'].dt.normalize()
-        
+
 gdpDaily = turnDaily(unh, gdp)
-gdpDaily = DataFrame(gdpDaily)    
+gdpDaily = DataFrame(gdpDaily)
 gdpDaily.dropna()
 gdpDaily.rename(columns = {'0':'GDP'}, inplace = True)
 
 cpiDaily = turnDaily(unh, cpi)
-cpiDaily = DataFrame(cpiDaily)    
+cpiDaily = DataFrame(cpiDaily)
 cpiDaily.dropna()
 cpiDaily.rename(columns = {'0':'CPI'}, inplace = True)
 
 inflationDaily = turnDaily(unh, inflation)
-inflationDaily = DataFrame(inflationDaily)    
+inflationDaily = DataFrame(inflationDaily)
 inflationDaily.dropna()
 inflationDaily.rename(columns = {'0':'Inflation'}, inplace = True)
 
 unemploymentDaily = turnDaily(unh, unemployment)
-unemploymentDaily = DataFrame(unemploymentDaily)    
+unemploymentDaily = DataFrame(unemploymentDaily)
 unemploymentDaily.dropna()
 unemploymentDaily.rename(columns = {'0':'Unempl'}, inplace = True)
 
@@ -127,7 +127,7 @@ x = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/CI_data.csv').drop([
 stocks['Date'] = x['Date']
 for i in s_and_p:
     s = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/' + i + '_data.csv').drop(['Open','High','Low','Adj Close','Volume', 'Name'], axis = 1)
-    apd = s[s['Date'] >= '1994-01-01'].copy()
+    apd = s[s['Date'] >= '1994-02-04'].copy()
     stocks[i] = apd['Close']
 
 stocks.dropna(axis = 'columns', inplace = True)
