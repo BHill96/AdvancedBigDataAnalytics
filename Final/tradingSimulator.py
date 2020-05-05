@@ -259,7 +259,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         returns = pd.DataFrame(returns, columns=['Stock','Return'])
         returns.sort_values(['Return'], ascending=False, axis=0, inplace=True)
 
-        print('Buying best n stocks...')
+        print('Buying best {0} stocks...'.format(n))
         stocks = returns.iloc[:n]
         print(stocks)
 
@@ -269,3 +269,11 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
         currentNum = forcastData[forcastData.DATE < t]
 
         print('Calculating actual returns...')
+        interval = forcastData[(forcastData.DATE > t) & (forcastData.DATE <= t+dt)]
+        actRtns = interval[stocks.Stock]
+        stockTicks = interval.columns
+        actRtns = actRtns.iloc[-1]-actRtns.iloc[0]
+        actRtns = pd.DataFrame([stockTicks,actRtns])
+        print(actRtns)
+
+
