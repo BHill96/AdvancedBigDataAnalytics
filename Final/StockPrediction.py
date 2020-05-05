@@ -12,8 +12,7 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from XLNetFed import CalcSentiment, TextPrep
 from transformers import XLNetForSequenceClassification, AdamW
-from tqdm import trange
-import tqdm
+from tqdm import trange, tqdm
 import numpy as np
 from numpy import argmax
 from tensorflow.keras import Sequential, callbacks
