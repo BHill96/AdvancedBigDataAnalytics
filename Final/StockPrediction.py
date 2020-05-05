@@ -19,7 +19,6 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 from sklearn.metrics import mean_absolute_error
-import matplotlib.pyplot as plt
 
 # Silence tensorflow and pandas warnings
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -146,7 +145,7 @@ def lstm(data, ticker, epochs=5, batch=64):
     model = createModel(X.shape)
 
     # Compile and train model
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_average_error')
     # Verbose=0 makes it silent
     model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
     return model
@@ -265,68 +264,3 @@ for stock in data.columns[7:]:
 
 mae = pd.DataFrame(mae)
 mae.to_csv('Data/finalModelMAE.csv')
-
-
-"""
-def prediction(predict, actual, stockname):
-    plt.figure(figsize=(14,5))
-    plt.plot(actual, color = 'red', label = 'Real' + stockname + 'Stock Price')
-    plt.plot(predict, color = 'blue', label = 'Predicted' + stockname + 'Stock Price')
-    plt.title(stockname + ' Stock Price Prediction')
-    plt.xlabel('Time')
-    plt.ylabel(stockname +  ' Stock Price')
-    plt.legend()
-    plt.show()
-
-prediction(y_pred[:,0],unh1,'UNH')
-prediction(y_pred[:,1],ci1,'CI')
-prediction(y_pred[:,2],gild1,'GILD')
-prediction(y_pred[:,3],hum1,'HUM')
-prediction(y_pred[:,4],pfe1,'PFE')
-
-#Plot all stock predicts and actuals
-plt.figure(figsize=(14,5))
-plt.plot(pfe1, color = 'red', label = 'Real UNH Stock Price')
-plt.plot(unh1, color = 'cyan', label = 'Real UNH Stock Price')
-plt.plot(gild1, color = 'green', label = 'Real GILD Stock Price')
-plt.plot(hum1, color = 'magenta', label = 'Real HUM Stock Price')
-plt.plot(ci1, color = 'yellow', label = 'Real CI Stock Price')
-plt.plot(y_pred[:,0], color = 'blue', label = 'Predicted UNH Stock Price')
-plt.plot(y_pred[:,1], color = 'black', label = 'Predicted CI Stock Price')
-plt.plot(y_pred[:,2], color = '0.9', label = 'Predicted GILD Stock Price')
-plt.plot(y_pred[:,3], color = '0.75', label = 'Predicted HUM Stock Price')
-plt.plot(y_pred[:,4], color = '0.5', label = 'Predicted PFE Stock Price')
-plt.title('UNH Stock Price Prediction')
-plt.xlabel('Time')
-plt.ylabel('UNH Stock Price')
-plt.legend()
-plt.show()
-
-
-# PDF is just for quick checking of figure
-plt.savefig('StockPredXLNet.pdf')
-plt.savefig('StockPredXLNet.pgf', transparent=True)
-plt.show()
-
-# Print MSE for each stock and Residual Plot
-def metrics(predict, actual, stock):
-    res = []
-    for i,j in zip(predict,actual):
-        res.append(abs(i-j))
-    plt.plot(res)
-    plt.ylabel('Residual Squared')
-    plt.xlabel('Time (Days)')
-    plt.title(stock + ' Residuals')
-    plt.show()
-    #Determine MSE
-    predict = predict.tolist()
-    actual = actual.tolist()
-    print(mean_squared_error(predict,actual))
-
-
-metrics(y_pred[:,0],unh1, 'UNH')
-metrics(y_pred[:,1],ci1, 'CI')
-metrics(y_pred[:,2],gild1, 'GILD')
-metrics(y_pred[:,3],hum1, 'HUM')
-metrics(y_pred[:,4],pfe1, 'PFE')
-"""
