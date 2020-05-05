@@ -155,7 +155,8 @@ def lstm(data, ticker, epochs=5, batch=64):
 
     # Compile and train model
     model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X, Y, epochs=epochs, batch_size=batch)
+    # Verbose=0 makes it silent
+    model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
     return model
 
 """
@@ -223,7 +224,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
                                             currentText[['Date','Sentiment']])
 
         print('LSTM training...')
-        for stock in usableStocks:
+        for stock in tqdm(usableStocks):
             lstmColumns = np.append(macroFiles, ['DATE',stock,'Sentiment'])
             modelData = currentNum[lstmColumns]
             model = lstm(modelData, stock)
