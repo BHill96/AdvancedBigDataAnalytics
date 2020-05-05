@@ -257,11 +257,17 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10, test_size
     return model
 
 def Predict(model, inpts, masks, batchSize):
+    # Set up model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.eval()
-    inpts, masks = torch.tensor(inpts), torch.tensor(masks)
+
+    # Prep data
+    inpts = torch.tensor(inpts)
+    masks = torch.tensor(masks)
     evalData = TensorDataset(inpts, masks)
     evalDataloader = DataLoader(evalData, batch_size=batchSize)
+
+    # Predict
     labels = np.array([])
     for batch in evalDataloader:
         batch = tuple(t.to(device) for t in batch)
