@@ -240,6 +240,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
             day = deepcopy(modelData.iloc[-1].drop('DATE'))
             history = [day[stock]]
             for _ in forcastDates:
+                print(day)
                 lstmInput = np.reshape(np.array(day, np.float), (1,len(day),1))
                 price = model.predict(lstmInput)
                 day.loc[stock] = price[0][0]
