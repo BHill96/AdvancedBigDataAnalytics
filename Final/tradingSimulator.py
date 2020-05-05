@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import datetime
 from dateutil.relativedelta import relativedelta
-#import XLNetFed
+import XLNetFed
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
@@ -216,13 +216,12 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
 
         # Requires GPU
         print('Training XLNet...')
-        """sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
+        sentiment = XLNetFed.CalcSentiment(currentText, currentNum[['DATE',xlnetMetric]],
                                            metricType=xlnetMetricType)
         inpt, attMsk = XLNetFed.TextPrep(currentText, MAX_LEN=MAX_LEN)
         model = XLNetFed.Train(inpt[:-1], attMsk[:-1], list(sentiment.Econ_Perf), batch_size=batch,
                                epochs=epochs)
-        print('Trained')"
-        sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)"""
+        sentiment = XLNetFed.Predict(model, inpt, attMsk, batch)
         sentiment = [1 for _ in range(0, len(currentText))]
         currentText['Sentiment'] = sentiment
         currentNum['Sentiment'] = turnDaily(currentNum[['DATE', usableStocks[0]]],
