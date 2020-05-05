@@ -243,7 +243,7 @@ def simulateMarket(T, dt, n, riskLevel, numRiskLevels, xlnetMetric, xlnetMetricT
                 print(day)
                 lstmInput = np.reshape(np.array(day, np.float), (1,len(day),1))
                 price = model.predict(lstmInput)
-                day.set_value(stock, price[0][0])
+                day[stock] = price[0][0]
                 history.append(price[0][0])
             # Calculate the Return
             print('{0}: {1}'.format(stock, history))
