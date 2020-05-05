@@ -97,8 +97,6 @@ def TextPrep(sentimentData, MAX_LEN=128):
     # Create token IDS
     input_ids = tokenizedText.apply(tokenizer.convert_tokens_to_ids)
     input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype='long', truncating='post', padding='post')
-    print(type(input_ids))
-    print(input_ids)
     # Attention masks mark how many tokens are in a sentence
     attention_masks = []
     for seq in input_ids:
@@ -261,6 +259,8 @@ def Train(inputIds, attention_masks, labels, batch_size=24, epochs=10, test_size
 def Predict(model, inpts, masks, batchSize):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.eval()
+    print(inpts)
+    print(masks)
     evalData = TensorDataset(inpts, masks)
     evalDataloader = DataLoader(evalData, batch_size=batchSize)
     labels = np.array([])
