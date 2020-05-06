@@ -221,8 +221,8 @@ for batch in evalDataloader:
     labels = np.append(labels, argmax(logits, axis=1).flatten())
 
 textPred = DataFrame(textData.Date, columns=['Date'])
-#textPred['Label'] = labels
-textPred['Label'] = [1 for _ in range(0,len(textPred.index))]
+textPred['Label'] = labels
+#textPred['Label'] = [1 for _ in range(0,len(textPred.index))]
 
 # Begin RNN LSTM
 print('Loading Stocks...')
