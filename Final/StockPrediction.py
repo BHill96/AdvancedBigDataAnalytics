@@ -145,7 +145,7 @@ def lstm(data, ticker, epochs=5, batch=64):
     model = createModel(X.shape)
 
     # Compile and train model
-    model.compile(optimizer='adam', loss='mean_absolute_error')
+    model.compile(optimizer='adam', loss='mean_squared_error')
     # Verbose=0 makes it silent
     model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
     return model
@@ -239,8 +239,8 @@ data.reset_index(inplace=True)
 data.drop('index', axis=1, inplace=True)
 data.rename(columns={'Date':'DATE'}, inplace=True)
 
-data_training = data[data['DATE']<'2012-01-01']
-data_test = data[data['DATE']>='2012-01-01']
+data_training = data[data['DATE']<'2016-01-01']
+data_test = data[data['DATE']>='2016-01-01']
 
 #Create test and training sets
 mae = []
