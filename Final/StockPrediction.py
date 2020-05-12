@@ -18,7 +18,7 @@ from numpy import argmax
 import tensorflow as tf
 from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Dense, LSTM, Dropout
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 import sys
 
 # Silence tensorflow and pandas warnings
@@ -246,7 +246,7 @@ data_training = data[data['DATE']<'2016-01-01']
 data_test = data[data['DATE']>='2016-01-01']
 
 #Create test and training sets
-mae = []
+mse = []
 print('Testing Stocks...')
 for stock in data.columns[7:]:
     modelColumns = np.append(macroFiles, stock)
@@ -262,8 +262,8 @@ for stock in data.columns[7:]:
 
     pred = model.predict(X)
     predict = pred.tolist()
-    mae.append([stock, mean_absolute_error(predict,actual)])
-    print('Stock {0} MSE {1}'.format(stock, mae[-1][1]))
+    mse.append([stock, mean_squared_error(predict,actual)])
+    print('Stock {0} MSE {1}'.format(stock, mse[-1][1]))
 
-mae = pd.DataFrame(mae)
-mae.to_csv('Data/finalModelMSE.csv')
+mse = pd.DataFrame(mse)
+mse.to_csv('Data/finalModelMSE.csv')
