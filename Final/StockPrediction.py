@@ -263,7 +263,7 @@ for stock in data.columns[7:]:
     pred = model.predict(X)
     predict = pred.tolist()
     mae.append([stock, mean_absolute_error(predict,actual)])
-    print('Stock {0} MAE {1}'.format(stock, mae[-1][1]))
+    print('Stock {0} MSE {1}'.format(stock, mae[-1][1]))
 
 mae = pd.DataFrame(mae)
 mae.to_csv('Data/finalModelMSE.csv')
