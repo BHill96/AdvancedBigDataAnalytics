@@ -19,6 +19,7 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, callbacks
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 from sklearn.metrics import mean_absolute_error
+import sys
 
 # Silence tensorflow and pandas warnings
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -151,16 +152,18 @@ def lstm(data, ticker, epochs=5, batch=64):
     return model
 
 # Train XLNet
-EPOCHS = 10
-BATCH_SIZE = 28
-MAX_LEN = 128
+print(sys.argv)
+XLNetFile = sys.argv[1]
+EPOCHS = sys.argv[4]
+BATCH_SIZE = sys.argv[2]
+MAX_LEN = sys.argv[3]
 dataDr = 'Data/'
 print('XLNet...')
 #textData = read_csv(dataDr+'FedTextData.csv',names=['Date','Text'])
 #textData.Date = pd.to_datetime(textData['Date'])
 #textData.Date = textData['Date'].dt.normalize()
 textData = CalcSentiment(read_csv(dataDr+'FedTextData.csv', names=['Date','Text']),
-                         read_csv(dataDr+'liborfinal.csv'))
+                         read_csv(dataDr+XLNetFile))
 inpts, attMsks = TextPrep(textData, MAX_LEN=MAX_LEN)
 
 # Turn data into torch tensors
@@ -263,4 +266,4 @@ for stock in data.columns[7:]:
     print('Stock {0} MAE {1}'.format(stock, mae[-1][1]))
 
 mae = pd.DataFrame(mae)
-mae.to_csv('Data/finalModelMAE.csv')
+mae.to_csv('Data/finalModelMSE.csv')
