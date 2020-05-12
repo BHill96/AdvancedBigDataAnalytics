@@ -154,9 +154,9 @@ def lstm(data, ticker, epochs=5, batch=64):
 # Train XLNet
 print(sys.argv)
 XLNetFile = sys.argv[1]
-EPOCHS = sys.argv[4]
-BATCH_SIZE = sys.argv[2]
-MAX_LEN = sys.argv[3]
+EPOCHS = int(sys.argv[4])
+BATCH_SIZE = int(sys.argv[2])
+MAX_LEN = int(sys.argv[3])
 dataDr = 'Data/'
 print('XLNet...')
 #textData = read_csv(dataDr+'FedTextData.csv',names=['Date','Text'])
