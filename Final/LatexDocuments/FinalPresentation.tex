@@ -14,6 +14,7 @@
 \newcommand{\WF}{Workflow}
 \newcommand{\DAT}{Data Description}
 \newcommand{\ALG}{Main Models}
+\newcommand{\THE}{Theory}
 \newcommand{\IMP}{Implementation}
 \newcommand{\CC}{Conclusion}
 \newcommand{\XL}{XLNet}
@@ -21,6 +22,7 @@
 \newcommand{\MM}{Main Model}
 \newcommand{\SC}{Source}
 \newcommand{\PRD}{Prediction}
+\newcommand{\PE}{Performance Evaluation}
 \newcommand{\XLI}{XLNet Implementation}
 
 \author{Blake Hillier, Grace Li, Joe Puhalla}
@@ -28,7 +30,7 @@
 \title{\TT}
 %\setbeamercovered{transparent} 
 \setbeamertemplate{navigation symbols}{}
-\date{31 March 2020} 
+\date{5 May 2020} 
 \subject{Advanced Big Data Analysis} 
 \begin{document}
 
@@ -49,10 +51,11 @@
 \end{itemize}
 \end{frame}
 
+\subsection{\WF}
 \begin{frame}{\WF}
 \begin{figure}
     \centering
-    \includegraphics[width=12cm]{workflow.png}
+    \includegraphics[width=11cm]{workflow_.png}
     \caption{Workflow}
     \label{fig:my_label}
 \end{figure}
@@ -62,27 +65,25 @@
 \begin{frame}{\DAT}
 \begin{figure}
     \centering
-    \includegraphics[width=8cm]{Notes/data.png}
-    \caption{Data}
+    \includegraphics[width=10cm]{Notes/DataList.png}
+    \caption{Data Description}
     \label{fig:my_label}
 \end{figure}
 \end{frame}
 
-\section{\XL}
-\begin{frame}{\XL}
-    XLNet is an autoregressive pretraining approach for NLP models.
-    \begin{enumerate}
-        \item Pretraining involves training a model on a generic dataset to understand general patterns within a broad field. \\
-        \item Autoregressive pretraining approaches create a conditional probability distribution based on the likelihood function \begin{equation*}
-            p(x)=\prod_{t=1}^{T}p(x_{t}|x_{<t})
-        \end{equation*} which only sees the relationship between previous text.
-    \end{enumerate}
+\subsection{\PE}
+\begin{frame}{\PE}
+We validated our XLNet-LSTM based on the S&P 500 stocks. We calculate the Mean Absolute Error (MAE) to evaluate the proposed methods, which is defined as
+$$ MAE_{t} = \frac{1}{L} \sum_{i=1}^{L} \frac{\sum_{i=1}^{n} \mid y_{i, t} - x_{i, t} \mid }{n} = \frac{1}{L} \sum_{i=1}^{L} \frac{\sum_{i=1}^{n} \mid e_{i, t} \mid}{n}$$
+Where $y_{i, t}$ is the real stock price of the $i$-th stock on the $t$-th day, $L$ is the number of stocks and $x_{i,t}$ is the corresponding prediction result. 
 \end{frame}
 
+\section{\XL}
+\subsection{\THE}
 \begin{frame}{\XL}
-    \scalebox{0.85}{\begin{equation*}
+    XLNet is an autoregressive pretraining approach for NLP models which solves: \scalebox{0.85}{\begin{equation*}
         \max_{\theta}E_{z\sim Z_{T}}\left[\sum_{t=1}^{T}\log p_{\theta}(x_{z_{t}}|x_{z<t})\right]=E_{z\sim Z_{T}}\left[\sum_{t=1}^{T}\log\frac{e^{g_{\theta}(x_{z<t,z_{t}})l(x_{t}})}{\sum_{x^{'}}e^{g_{\theta}(x_{z<t,z_{t}})l(x^{'})}}\right]
-    \end{equation*}} \begin{itemize}
+    \end{equation*}} where \begin{itemize}
         \item $Z_{T}$ is the set of all permutations of text of length $T$ \\
         \item $z\in Z_{T}, x_{z<t}$ is the sequence of text from 1 to $t−1$ \\
         \item $g_{\theta}$ transforms $x$ to a sequence of hidden words with the first $t-1$ set of words as additional information
@@ -90,15 +91,28 @@
     \textbf{Note: $g_{\theta}$ permutes $x$ and then masks the words}
 \end{frame}
 
+
+\subsection{\IMP}
 \begin{frame}{\XL}
-    In order for $g_{\theta}$ to accomplish this, they split it into two different transforms: 
+    We used pytorch's implementation of XLNet-base for our model.
     \begin{itemize}
-        \item $g_{\theta}$ which looks at the first $t-1$ words in the permuted order to predict the  $t^{th}$ word \\
-        \item $h_{\theta}$ which simply encodes the first $t$ words in the permuted order
+        \item Sentiment was assigned to the Fed's Statements by looking at the percent change of various macro variables
+        \item We used an 80/20 Train/Test split \\
+        \item Testing was done using a GPU on Colab
     \end{itemize}
-    To reduce the complexity, they change the optimization problem to \begin{equation*}
-        \max_{\theta}E_{z\sim Z_{T}}\left[\log_{p_{\theta}}(x_{z>c}|x_{z\leq t})\right]=E_{z\sim Z_{T}}\left[\sum_{t=c+1}^{|z|}\log p_{\theta}(x_{z_{t}}|x_{z<t})\right]
-    \end{equation*}
+\end{frame}
+
+\begin{frame}
+    \vspace{-0.55in}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=1.03\textwidth,  height=.75\textwidth]{Notes/ParameterSims3.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{\XL}
+    We see XLNet best predicts Libor Rates just under 70\%.
+    Based on these tests, we used the Libor Rates as sentiment with a maximum string length of 256, a batch size of 8, and 10 epochs for training.
 \end{frame}
 
 \section{\LS}
@@ -112,75 +126,61 @@
 Cell makes decision by considering current input, previous output and previous memory.Generates new output and alters its memory.
 \end{frame}
 
-\begin{frame}{\LS}
-A common LSTM unit is composed of a cell, an input gate, an output gate and a 
-forget gate. The cell remembers values over arbitrary time intervals and the three gates regulate the flow of information into and out of the cell.
-\begin{itemize}
-    \item cell: responsible for keeping track of the dependencies between the elements in the input sequence. \\
-    \item input gate: controls the extent to which a new value flows into the cell. \\
-    \item forget gate: controls the extent to which a value remains in the cell. \\
-    \item output gate: controls the extent to which the value in the cell is used to compute the output activation of the LSTM unit. 
-\end{itemize}
-\end{frame}
 
-\section{\IMP}
-\subsection{\XL}
-\begin{frame}{\XL}
-    We used pytorch's implementation of XLNet-base for our model.
-    \begin{itemize}
-        \item Sentiment was assigned to the Fed's Statements by looking at the percent change of the UNH stock \\
-        \item We used an 80/20 Train/Test split \\
-        \item Testing was done using a GPU on Colab
-    \end{itemize} After some testing we found a maximum statement length of 128, batch size of 24, and 10 epochs produced the best accuracy of $77.1\%$.
-\end{frame}
+
 
 \subsection{\LS}
 \begin{frame}{\PRD}
 \begin{figure}
 \centering
 \begin{subfigure}
-    \includegraphics[scale = 0.5]{LSTMResult.png}
+    \includegraphics[scale = 0.40]{hpq.png}
     \label{fig:LSTMForecast}
 \end{subfigure}
 \begin{subfigure}
-    \includegraphics[scale = 0.5]{LSTMMSE.png}
+    \includegraphics[scale = 0.48]{hban.png}
     \label{fig:LSTMResult}
 \end{subfigure}
 \end{figure}
 \end{frame}
 
-\subsection{\MM}
+\begin{frame}{\PRD}
+\begin{figure}
+\centering
+\begin{subfigure}
+    \includegraphics[scale = 0.45]{mae.png}
+    \label{fig:LSTMForecast}
+\end{subfigure}
+\begin{subfigure}
+    \includegraphics[scale = 0.45]{maecdf.png}
+    \label{fig:LSTMResult}
+\end{subfigure}
+\end{figure}
+\end{frame}
+
+\section{\MM}
 \begin{frame}{\MM}
     \begin{enumerate}
         \item We first trained the XLNet on the entire text data, and then predicted the sentiment on the same dataset \\
         \item This was then merged with the input data for the LSTM, and was trained using a portion of the stock data \\
-        \item Once trained, we validated it with the last 2014 data points to obtain the MSE: 25.226 \\
-        \item This is lower than our previous tests with the LSTM, showing the capability of XLNet improving our forecasting accuracy \\
+        \item Once trained, we validated it with data from 2012 to 2019 and recieved an average error of $62.79$ \\
+        \item This is actually worse than our pure LSTM model, indicating our sentiment does not seem to improve our overall model.
     \end{enumerate}
-\end{frame}
-
-\begin{frame}{\MM}
-    \begin{figure}
-        \centering
-        \scalebox{0.38}{\input{StockPredXLNet.pgf}}
-        \caption{Forecast with XLNet and LSTM compared with the actual price}
-        \label{fig:XLNetLSTMForcast}
-\end{figure}
 \end{frame}
 
 \section{\CC}
 \begin{frame}{\CC}
     \begin{itemize}
-        \item Our model consists of XLNet and an LSTM network
-        \item While our individual results were ok, we showed sentiment analysis using XLNet improved our forecasted results
+        \item We integrated the XLNet models with the LSTM to identify and extract opinions from the federal statement, combining the stock adjust close price and macro-economic data to make stock prediction more accuracy.
+        \item The accuracy performance of XLNet-LSTM ends up with an MAE over 60, which is higher than the LSTM MAE of 32. The result means that XLNet can not make the prediction result more accurate and robust.
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Future Work}
+\begin{frame}{What's Next}
     \begin{itemize}
-        \item More macro and microeconomic features
-        \item Use a longer timeframe for data
-        \item Judge final model by simulating a trading strategy
+        \item Exploding Gradient Problem of LSTM
+        \item Market Simulator Plan
+        \item Analyze distributions of MAE
     \end{itemize}
 \end{frame}{}
 

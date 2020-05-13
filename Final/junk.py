@@ -21,62 +21,62 @@ def turnDaily(stock, info):
     i=len(info)-1
     j=len(stock)-1
     while j > -1 and i > -1:
-        if info['Date'][i] < stock['Date'][j]:
+        if info['DATE'][i] < stock['Date'][j]:
             daily.append(info[colLabel][i])
             j = j-1
         else:
             i = i-1
     return daily[::-1]
 
-unh = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/UNH_data.csv')
+print('Loading Macro Data...')
+unh = pd.read_csv('Data/Stocks/UNH_data.csv')
 unh['Date'] = pd.to_datetime(unh['Date'])
-libor = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/liborfinal.csv')
-gdp = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/GDPC1.csv')
-cpi = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/CPIAUCSL.csv')
-inflation = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/MICH.csv')
-unemployment = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/UNRATENSA.csv')
 
-cpi['Date'] = pd.to_datetime(cpi['Date'])
-cpi['Date'] = cpi['Date'].dt.normalize()
+libor = pd.read_csv('Data/liborfinal.csv')
+gdp = pd.read_csv('Data/GDPC1.csv')
+cpi = pd.read_csv('Data/CPIAUCSL.csv')
+inflation = pd.read_csv('Data/MICH.csv')
+unemployment = pd.read_csv('Data/UNRATENSA.csv')
 
-
-gdp['Date'] = pd.to_datetime(gdp['Date'])
-gdp['Date'] = gdp['Date'].dt.normalize()
-
-inflation['Date'] = pd.to_datetime(inflation['Date'])
-inflation['Date'] = inflation['Date'].dt.normalize()
+cpi['DATE'] = pd.to_datetime(cpi['DATE'])
+cpi['DATE'] = cpi['DATE'].dt.normalize()
 
 
-unemployment['Date'] = pd.to_datetime(unemployment['Date'])
-unemployment['Date'] = unemployment['Date'].dt.normalize()
-        
+gdp['DATE'] = pd.to_datetime(gdp['DATE'])
+gdp['DATE'] = gdp['DATE'].dt.normalize()
+
+inflation['DATE'] = pd.to_datetime(inflation['DATE'])
+inflation['DATE'] = inflation['DATE'].dt.normalize()
+
+
+unemployment['DATE'] = pd.to_datetime(unemployment['DATE'])
+unemployment['DATE'] = unemployment['DATE'].dt.normalize()
+
 gdpDaily = turnDaily(unh, gdp)
-gdpDaily = DataFrame(gdpDaily)    
+gdpDaily = DataFrame(gdpDaily)
 gdpDaily.dropna()
 gdpDaily.rename(columns = {'0':'GDP'}, inplace = True)
 
 cpiDaily = turnDaily(unh, cpi)
-cpiDaily = DataFrame(cpiDaily)    
+cpiDaily = DataFrame(cpiDaily)
 cpiDaily.dropna()
 cpiDaily.rename(columns = {'0':'CPI'}, inplace = True)
 
 inflationDaily = turnDaily(unh, inflation)
-inflationDaily = DataFrame(inflationDaily)    
+inflationDaily = DataFrame(inflationDaily)
 inflationDaily.dropna()
 inflationDaily.rename(columns = {'0':'Inflation'}, inplace = True)
 
 unemploymentDaily = turnDaily(unh, unemployment)
-unemploymentDaily = DataFrame(unemploymentDaily)    
+unemploymentDaily = DataFrame(unemploymentDaily)
 unemploymentDaily.dropna()
 unemploymentDaily.rename(columns = {'0':'Unempl'}, inplace = True)
 
-libor = read_csv('AdvancedBigDataAnalytics/Final/Data/liborfinal.csv')
-libor['Date'] = pd.to_datetime(libor['Date'])
-libor['Date'] = libor['Date'].dt.normalize()
+libor = read_csv('Data/liborfinal.csv')
+libor['DATE'] = pd.to_datetime(libor['DATE'])
+libor['DATE'] = libor['DATE'].dt.normalize()
 
-
-
-
+print('Loading Stock Data...')
 #Read in files
 s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',
         'AMG','AFL','A','APD','AKAM','ALK','ALB','ARE','ALXN','ALGN','ALLE',
@@ -119,23 +119,20 @@ s_and_p = ['MMM','ABT','ABBV','ACN','ATVI','AYI','ADBE','AMD','AAP','AES','AET',
 		'WLTW','WYNN','XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS']
 
 stocks = pd.DataFrame()
-x = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close', 'Volume', 'Name'], axis = 1)
+x = pd.read_csv('Data/Stocks/CI_data.csv').drop(['Open','High','Low','Close','Adj Close', 'Volume', 'Name'], axis = 1)
 stocks['Date'] = x['Date']
 for i in s_and_p:
-    s = pd.read_csv('AdvancedBigDataAnalytics/Final/Data/Stocks/' + i + '_data.csv').drop(['Open','High','Low','Adj Close','Volume', 'Name'], axis = 1)
+    s = pd.read_csv('Data/Stocks/' + i + '_data.csv').drop(['Open','High','Low','Adj Close','Volume', 'Name'], axis = 1)
     apd = s[s['Date'] >= '1994-01-01'].copy()
     stocks[i] = apd['Close']
 
 stocks.dropna(axis = 'columns', inplace = True)
-
 
 stocks['libor'] = libor[' value']
 stocks['cpi'] = cpiDaily
 stocks['gdp'] = gdpDaily
 stocks['I'] = inflationDaily
 stocks['U'] = unemploymentDaily
-
-
 
 #%%
 data_training1 = stocks[stocks['Date']<'2009-01-01'].copy()

@@ -159,13 +159,13 @@ def lstm(data, ticker, epochs=5, batch=64):
     model = createModel(X.shape)
 
     # Compile and train model
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_absolute_error')
     # Verbose=0 makes it silent
     model.fit(X, Y, epochs=epochs, batch_size=batch, verbose=0)
     return model
 
 """
-Simulates the market from tBegin to tEnd while implimenting a long trading strategy
+Simulates the market from tBegin to tEnd while implimenting a long-term trading strategy
 for each t it trains the XLNet and the LSTM based on 'current' data,
 then forcasts to t+dt and calculates the expected return for each stock.
 Ranks each stock by return and selects the top n stocks to invest in.
